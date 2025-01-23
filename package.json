@@ -30,7 +30,10 @@
     "react-medium-image-zoom": "^5.2.13",
     "react-range": "^1.10.0",
     "react-toastify": "^10.0.5",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "express-rate-limit": "^7.1.5",
+    "validator": "^13.11.0",
+    "sanitize-html": "^2.12.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

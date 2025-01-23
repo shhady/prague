@@ -1,15 +1,16 @@
-import validator from 'validator';
-import sanitizeHtml from 'sanitize-html';
-
 export function validateEmail(email) {
-  return validator.isEmail(email);
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
 }
 
 export function sanitizeInput(input) {
-  return sanitizeHtml(input, {
-    allowedTags: [],
-    allowedAttributes: {},
-  });
+  // Basic HTML sanitization
+  return input
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 export function validateContactForm(data) {
