@@ -1,14 +1,17 @@
 import { NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/dbConnect';
-import { ObjectId } from 'mongodb';
+import dbConnect from '@/lib/dbConnect';
+import mongoose from 'mongoose';
 
 // GET /api/orders/[id] - Get order details
 export async function GET(request, { params }) {
   try {
-    const { db } = await connectToDatabase();
+    const conn = await dbConnect();
+    const db = conn.connection.db;
     const { id } = params;
 
-    const order = await db.collection('orders').findOne({ id });
+    const order = await db.collection('orders').findOne({ 
+      _id: new mongoose.Types.ObjectId(id) 
+    });
 
     if (!order) {
       return NextResponse.json(
@@ -21,7 +24,7 @@ export async function GET(request, { params }) {
   } catch (error) {
     console.error('Error fetching order:', error);
     return NextResponse.json(
-      { error: 'حدث خطأ أثناء جلب تفاصيل الطلب' },
+      { error: 'حدث خطأ أثناء جلب الطلب' },
       { status: 500 }
     );
   }

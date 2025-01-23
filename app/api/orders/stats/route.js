@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/dbConnect';
+import dbConnect from '@/lib/dbConnect';
 
 // GET /api/orders/stats - Get order statistics
 export async function GET(request) {
   try {
-    const { db } = await connectToDatabase();
+    const conn = await dbConnect();
+    const db = conn.connection.db;
     const { searchParams } = new URL(request.url);
     const startDate = searchParams.get('startDate') ? new Date(searchParams.get('startDate')) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const endDate = searchParams.get('endDate') ? new Date(searchParams.get('endDate')) : new Date();
