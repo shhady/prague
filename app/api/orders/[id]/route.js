@@ -33,7 +33,8 @@ export async function GET(request, { params }) {
 // PATCH /api/orders/[id] - Update order status
 export async function PATCH(request, { params }) {
   try {
-    const { db } = await connectToDatabase();
+    const conn = await dbConnect();
+    const db = conn.connection.db;
     const { id } = params;
     const data = await request.json();
 
@@ -54,7 +55,7 @@ export async function PATCH(request, { params }) {
     };
 
     const result = await db.collection('orders').findOneAndUpdate(
-      { id },
+      { _id: new mongoose.Types.ObjectId(id) },
       {
         $set: {
           status: data.status,
@@ -102,16 +103,29 @@ function getStatusNote(status) {
 // DELETE /api/orders/[id] - Cancel order
 export async function DELETE(request, { params }) {
   try {
+    const conn = await dbConnect();
+    const db = conn.connection.db;
     const { id } = params;
 
-    // Mock cancellation - Replace with actual database update
-    const order = {
-      id,
-      status: 'cancelled',
-      updatedAt: new Date().toISOString()
-    };
+    const result = await db.collection('orders').findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(id) },
+      {
+        $set: {
+          status: 'cancelled',
+          updatedAt: new Date()
+        }
+      },
+      { returnDocument: 'after' }
+    );
 
-    return NextResponse.json(order);
+    if (!result.value) {
+      return NextResponse.json(
+        { error: 'الطلب غير موجود' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(result.value);
   } catch (error) {
     console.error('Error cancelling order:', error);
     return NextResponse.json(
