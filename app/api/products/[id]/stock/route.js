@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '../../../../lib/dbConnect';
+import dbConnect from '@/lib/dbConnect';
 import Product from '@/app/models/Product';
 
 export async function PUT(request, { params }) {

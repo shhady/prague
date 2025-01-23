@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
+import { connectToDatabase } from '@/lib/dbConnect';
 import { ObjectId } from 'mongodb';
 
 // GET /api/orders/[id] - Get order details
