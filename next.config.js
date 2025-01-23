@@ -2,7 +2,9 @@
 const nextConfig = {
   images: {
     domains: ['res.cloudinary.com'],
+    unoptimized: true,
   },
+  output: 'standalone',
   // If you're using experimental features, keep them
   experimental: {
     serverActions: {

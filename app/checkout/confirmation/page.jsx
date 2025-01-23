@@ -5,7 +5,23 @@ import Link from 'next/link';
 
 export default function OrderConfirmation() {
   const searchParams = useSearchParams();
-  const orderNumber = searchParams.get('order');
+  const orderNumber = searchParams?.get('order') || '';
+
+  if (!orderNumber) {
+    return (
+      <div className="container mx-auto px-4 py-16">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">لم يتم العثور على الطلب</h1>
+          <Link 
+            href="/shop"
+            className="text-primary hover:text-primary-dark"
+          >
+            العودة للتسوق
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-16">
