@@ -74,24 +74,17 @@ export default function ShopPage() {
     if (categoryId) {
       setFilters(prev => ({
         ...prev,
-        category: categoryId,
-        priceRange: '',
-        inStock: false
+        category: categoryId
       }));
     }
-    fetchProducts(1, true);
   }, [searchParams]);
 
+  // Single useEffect for all filter changes
   useEffect(() => {
-    // Reset products and page when filters change
     setProducts([]);
     setPage(1);
     setHasMore(true);
-    const timer = setTimeout(() => {
-      fetchProducts(1, true);
-    }, 0);
-    
-    return () => clearTimeout(timer);
+    fetchProducts(1, true);
   }, [filters, sortBy, searchQuery]);
 
   const fetchCategories = async () => {
@@ -115,44 +108,44 @@ export default function ShopPage() {
       const queryParams = new URLSearchParams({
         page: pageNum.toString(),
         limit: '10',
-        sortBy: sortBy || 'newest',
+        sortBy,
       });
       
-      // Add search query if exists
-      if (searchQuery) {
-        queryParams.append('search', searchQuery);
+      // Add search query
+      if (searchQuery?.trim()) {
+        queryParams.append('search', searchQuery.trim());
       }
       
-      // Add category filter
+      // Add filters
       if (filters.category) {
         queryParams.append('category', filters.category);
       }
 
-      // Add price range filter
       if (filters.priceRange && filters.priceRange !== 'all') {
         const selectedRange = PRICE_RANGES.find(range => range.value === filters.priceRange);
         if (selectedRange) {
-          if (selectedRange.min) queryParams.append('minPrice', selectedRange.min);
-          if (selectedRange.max) queryParams.append('maxPrice', selectedRange.max);
+          if (selectedRange.min) queryParams.append('minPrice', selectedRange.min.toString());
+          if (selectedRange.max) queryParams.append('maxPrice', selectedRange.max.toString());
         }
       }
 
-      // Add stock filter
       if (filters.inStock) {
         queryParams.append('inStock', 'true');
       }
 
-      const response = await fetch(`/api/products?${queryParams.toString()}`);
-      console.log('Fetching products with query:', queryParams.toString()); // Debug log
-      
+      const response = await fetch(`/api/products?${queryParams}`);
       if (!response.ok) throw new Error('Failed to fetch products');
       const data = await response.json();
       
-      setProducts(prev => isNewSearch ? data.products : [...prev, ...data.products]);
+      if (isNewSearch) {
+        setProducts(data.products);
+      } else {
+        setProducts(prev => [...prev, ...data.products]);
+      }
       setHasMore(data.products.length === 10);
     } catch (error) {
       setError(error.message);
-      console.error(error);
+      console.error('Error fetching products:', error);
     } finally {
       setIsLoading(false);
       isFetching.current = false;
@@ -167,22 +160,15 @@ export default function ShopPage() {
   };
 
   const handleFilterChange = (newFilters) => {
-    console.log('New filters:', newFilters); // Debug log
     setFilters(newFilters);
-    setPage(1);
-    setProducts([]);
   };
 
   const handleSortChange = (newSort) => {
     setSortBy(newSort);
-    setPage(1);
-    setProducts([]);
   };
 
   const handleSearch = (query) => {
     setSearchQuery(query);
-    setPage(1);
-    setProducts([]);
   };
 
   const handlePageChange = (newPage) => {

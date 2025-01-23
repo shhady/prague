@@ -99,39 +99,66 @@ export default function Home() {
         <div className="container mx-auto px-4">
           {/* <h2 className="text-4xl font-bold text-center mb-16">فئات منتجاتنا</h2> */}
           <div className="space-y-4">
-            {categories.map((category, index) => (
-              <div 
-                key={category._id} 
-                className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300"
-              >
-                {/* Image Section */}
-                <div className={`w-full flex justify-center ${
-                  index % 2 === 0 ? 'md:order-1' : 'md:order-2'
-                }`}>
-                  <div className="relative h-[400px] w-full rounded-lg overflow-hidden">
-                    <Image
-                      src={category.image}
-                      alt={category.name}
-                      fill
-                      className="object-contain hover:scale-110 transition-transform duration-500"
-                    />
+            {isLoading ? (
+              // Skeleton loading state
+              [...Array(3)].map((_, index) => (
+                <div 
+                  key={index}
+                  className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-white rounded-xl p-8 shadow-lg animate-pulse"
+                >
+                  {/* Image Section Skeleton */}
+                  <div className={`w-full flex justify-center ${
+                    index % 2 === 0 ? 'md:order-1' : 'md:order-2'
+                  }`}>
+                    <div className="relative h-[400px] w-full rounded-lg bg-gray-200"></div>
+                  </div>
+                  {/* Content Section Skeleton */}
+                  <div className={`w-full text-center md:text-center flex flex-col justify-center items-center ${
+                    index % 2 === 0 ? 'md:order-2' : 'md:order-1'
+                  }`}>
+                    <div className="h-8 bg-gray-200 rounded w-48 mb-4"></div>
+                    <div className="h-20 bg-gray-200 rounded w-3/4 mb-6"></div>
+                    <div className="h-12 bg-gray-200 rounded w-40"></div>
                   </div>
                 </div>
-                {/* Content Section */}
-                <div className={`w-full text-center md:text-center flex flex-col justify-center items-center ${
-                  index % 2 === 0 ? 'md:order-2' : 'md:order-1'
-                }`}>
-                  <h3 className="text-2xl font-bold mb-4">{category.nameAr}</h3>
-                  <p className="text-gray-600 mb-6">{category.descriptionAr}</p>
-                  <button
-                    onClick={() => router.push(`/shop?category=${category._id}`)}
-                    className="bg-gradient-ocean text-white px-8 py-3 rounded-lg hover:opacity-90 hover:scale-105 transform transition-all duration-300 shadow-md hover:shadow-lg"
+              ))
+            ) : (
+              <div className="space-y-4">
+                {categories.map((category, index) => (
+                  <div 
+                    key={category._id} 
+                    className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300"
                   >
-                    تسوق {category.nameAr}
-                  </button>
-                </div>
+                    {/* Image Section */}
+                    <div className={`w-full flex justify-center ${
+                      index % 2 === 0 ? 'md:order-1' : 'md:order-2'
+                    }`}>
+                      <div className="relative h-[400px] w-full rounded-lg overflow-hidden">
+                        <Image
+                          src={category.image}
+                          alt={category.name}
+                          fill
+                          className="object-contain hover:scale-110 transition-transform duration-500"
+                        />
+                      </div>
+                    </div>
+                    {/* Content Section */}
+                    <div className={`w-full text-center md:text-center flex flex-col justify-center items-center ${
+                      index % 2 === 0 ? 'md:order-2' : 'md:order-1'
+                    }`}>
+                      <h3 className="text-2xl font-bold mb-4">{category.nameAr}</h3>
+                      <p className="text-gray-600 mb-6">{category.descriptionAr}</p>
+                      <button
+                        onClick={() => router.push(`/shop?category=${category._id}`)}
+                        className="bg-gradient-ocean text-white px-8 py-3 rounded-lg hover:opacity-90 hover:scale-105 transform transition-all duration-300 shadow-md hover:shadow-lg"
+                      >
+                        تسوق {category.nameAr}
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
         </div>
       </section>

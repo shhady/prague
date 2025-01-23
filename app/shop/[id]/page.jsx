@@ -64,19 +64,39 @@ export default function ProductPage({ params }) {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 md:px-8 py-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Product Images Section */}
-        <div className="flex gap-4">
-          {/* Thumbnails Column */}
-          <div className="flex flex-col mt-1 gap-4">
+        <div className="flex flex-col md:flex-row gap-4 md:justify-between">
+          {/* Main Image */}
+          <div className="relative w-full md:flex-1 h-[400px] md:order-2">
+            <Image
+              src={product.images[selectedImage]}
+              alt={product.nameAr || product.name}
+              fill
+              className="object-contain rounded-lg border-2 border-gray-200"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
+            />
+          </div>
+
+          {/* Thumbnails Row (Mobile) / Column (Desktop) */}
+          <div className={`
+            flex md:flex-col gap-4 
+            md:h-[400px] md:overflow-y-auto
+            overflow-x-auto pb-2 md:pb-0
+            scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100
+            md:w-20 w-full
+            md:order-1
+            md:flex-shrink-0
+          `}>
             {product.images.map((image, index) => (
               <button
                 key={index}
                 onClick={() => setSelectedImage(index)}
-                className={`relative w-20 h-20 flex-shrink-0 rounded-md overflow-hidden border-2 transition-colors ${
-                  selectedImage === index ? 'border-primary' : 'border-gray-200 hover:border-gray-300'
-                }`}
+                className={`
+                  relative w-20 h-20 flex-shrink-0 rounded-md overflow-hidden border-2 transition-colors
+                  ${selectedImage === index ? 'border-primary' : 'border-gray-200 hover:border-gray-300'}
+                `}
               >
                 <Image
                   src={image}
@@ -86,17 +106,6 @@ export default function ProductPage({ params }) {
                 />
               </button>
             ))}
-          </div>
-
-          {/* Main Image */}
-          <div className="relative w-[400px] h-[400px]">
-            <Image
-              src={product.images[selectedImage]}
-              alt={product.nameAr || product.name}
-              fill
-              className="object-contain rounded-lg border-2 border-gray-200"
-              sizes="(max-width: 768px) 100vw, 400px"
-            />
           </div>
         </div>
 

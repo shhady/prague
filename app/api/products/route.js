@@ -10,19 +10,80 @@ export async function GET(request) {
     const page = parseInt(searchParams.get('page')) || 1;
     const limit = parseInt(searchParams.get('limit')) || 12;
     const category = searchParams.get('category');
+    const search = searchParams.get('search');
+    const sortBy = searchParams.get('sortBy');
+    const inStock = searchParams.get('inStock');
+    const minPrice = searchParams.get('minPrice');
+    const maxPrice = searchParams.get('maxPrice');
 
     await dbConnect();
 
-    const query = category ? { category } : {};
-    
-    const products = await Product.find(query)
-      .select('name nameAr price images stock') // Only select needed fields
-      .lean()
-      .limit(limit)
-      .skip((page - 1) * limit)
-      .sort({ createdAt: -1 });
+    const query = {};
 
-    return NextResponse.json({ products });
+    // Add search functionality - only match names
+    if (search?.trim()) {
+      const searchTerm = search.trim();
+      query.$or = [
+        { nameAr: { $regex: searchTerm, $options: 'i' } },
+        { name: { $regex: searchTerm, $options: 'i' } }
+      ];
+    }
+
+    // Category filter
+    if (category) {
+      query.category = category;
+    }
+
+    // Price range filter
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = parseFloat(minPrice);
+      if (maxPrice) query.price.$lte = parseFloat(maxPrice);
+    }
+
+    // Stock filter
+    if (inStock === 'true') {
+      query.stock = { $gt: 0 };
+    }
+
+    // Determine sort order
+    let sort = {};
+    switch (sortBy) {
+      case 'priceAsc':
+        sort = { price: 1 };
+        break;
+      case 'priceDesc':
+        sort = { price: -1 };
+        break;
+      case 'nameAsc':
+        sort = { nameAr: 1 };
+        break;
+      case 'nameDesc':
+        sort = { nameAr: -1 };
+        break;
+      default:
+        sort = { createdAt: -1 };
+    }
+
+    const products = await Product.find(query)
+      .select('name nameAr price images stock category')
+      .populate('category', 'name nameAr')
+      .sort(sort)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean();
+
+    // Get total count for pagination
+    const total = await Product.countDocuments(query);
+
+    return NextResponse.json({
+      products,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit)
+      }
+    });
   } catch (error) {
     console.error('Error fetching products:', error);
     return NextResponse.json(

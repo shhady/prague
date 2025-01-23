@@ -24,7 +24,7 @@ export default forwardRef(function ProductFilters({
     inStock: false
   });
   const [sortBy, setSortBy] = useState('newest');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchInput, setSearchInput] = useState('');
 
   // Expose clearFilters function to parent
   useImperativeHandle(ref, () => ({
@@ -62,7 +62,9 @@ export default forwardRef(function ProductFilters({
 
   const handleSearch = (e) => {
     e.preventDefault();
-    onSearch(searchQuery);
+    if (searchInput.trim()) {
+      onSearch(searchInput);
+    }
   };
 
   const handleClearFilters = () => {
@@ -73,7 +75,7 @@ export default forwardRef(function ProductFilters({
       inStock: false
     });
     setSortBy('newest');
-    setSearchQuery('');
+    setSearchInput('');
     onFilterChange({ category: currentCategory });
     onSortChange('newest');
     onSearch('');
@@ -86,17 +88,22 @@ export default forwardRef(function ProductFilters({
         <div className="relative flex-1">
           <input
             type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
             placeholder="ابحث عن منتج..."
-            className="w-full pl-10 pr-10 py-2 border rounded-lg"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary"
           />
-          <FiSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
         </div>
         <button
           type="submit"
-          className="bg-gradient-ocean text-white px-4 py-2 rounded-lg hover:bg-primary-dark"
+          disabled={!searchInput.trim()}
+          className={`px-6 py-2 rounded-lg flex items-center gap-2 ${
+            searchInput.trim() 
+              ? 'bg-gradient-ocean text-white hover:bg-primary-dark' 
+              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+          }`}
         >
+          <FiSearch />
           بحث
         </button>
       </form>
