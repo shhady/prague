@@ -1,21 +1,20 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import mongoose from 'mongoose';
+import Order from '@/app/models/Order';
 
 // GET /api/orders/[id] - Get order details
 export async function GET(request, { params }) {
+
+  const {id} = await params;
   try {
-    const conn = await dbConnect();
-    const db = conn.connection.db;
-    const { id } = params;
-
-    const order = await db.collection('orders').findOne({ 
-      _id: new mongoose.Types.ObjectId(id) 
-    });
-
+    await dbConnect();
+    
+    const order = await Order.findById(id);
+    
     if (!order) {
       return NextResponse.json(
-        { error: 'الطلب غير موجود' },
+        { error: 'Order not found' },
         { status: 404 }
       );
     }
@@ -24,7 +23,7 @@ export async function GET(request, { params }) {
   } catch (error) {
     console.error('Error fetching order:', error);
     return NextResponse.json(
-      { error: 'حدث خطأ أثناء جلب الطلب' },
+      { error: 'Failed to fetch order' },
       { status: 500 }
     );
   }
@@ -33,13 +32,12 @@ export async function GET(request, { params }) {
 // PATCH /api/orders/[id] - Update order status
 export async function PATCH(request, { params }) {
   try {
-    const conn = await dbConnect();
-    const db = conn.connection.db;
-    const { id } = params;
+    await dbConnect();
+    const { id } = await params;
     const data = await request.json();
 
     // Validate status
-    const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+    const validStatuses = ['pending', 'processing', 'completed', 'cancelled'];
     if (!validStatuses.includes(data.status)) {
       return NextResponse.json(
         { error: 'حالة الطلب غير صحيحة' },
@@ -47,15 +45,14 @@ export async function PATCH(request, { params }) {
       );
     }
 
-    // Update order
     const timelineEntry = {
       status: data.status,
       date: new Date(),
       note: data.note || getStatusNote(data.status)
     };
 
-    const result = await db.collection('orders').findOneAndUpdate(
-      { _id: new mongoose.Types.ObjectId(id) },
+    const updatedOrder = await Order.findByIdAndUpdate(
+      id,
       {
         $set: {
           status: data.status,
@@ -65,17 +62,17 @@ export async function PATCH(request, { params }) {
           timeline: timelineEntry
         }
       },
-      { returnDocument: 'after' }
+      { new: true } // Return the updated document
     );
 
-    if (!result.value) {
+    if (!updatedOrder) {
       return NextResponse.json(
         { error: 'الطلب غير موجود' },
         { status: 404 }
       );
     }
 
-    return NextResponse.json(result.value);
+    return NextResponse.json(updatedOrder);
   } catch (error) {
     console.error('Error updating order:', error);
     return NextResponse.json(

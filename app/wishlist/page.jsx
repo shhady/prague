@@ -17,13 +17,7 @@ export default function WishlistPage() {
   }, []);
 
   const handleAddToCart = (product) => {
-    addToCart({
-      id: product._id,
-      name: product.name,
-      nameAr: product.nameAr,
-      price: product.price,
-      image: product.images?.[0],
-    });
+    addToCart(product);
     toast.success('تمت الإضافة إلى السلة');
   };
 
@@ -44,7 +38,7 @@ export default function WishlistPage() {
           <p className="text-gray-500">لا توجد منتجات في المفضلة</p>
           <Link 
             href="/shop" 
-            className="inline-block mt-4 bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-dark transition-colors"
+            className="inline-block mt-4 bg-gradient-ocean text-white px-6 py-2 rounded-lg hover:bg-gray-900 transition-colors"
           >
             تصفح المنتجات
           </Link>

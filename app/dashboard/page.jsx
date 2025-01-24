@@ -181,7 +181,7 @@ export default function Dashboard() {
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold">أحدث الطلبات</h2>
-            <Link href="/orders" className="text-primary hover:underline">
+            <Link href="/dashboard/orders" className="text-primary hover:underline">
               عرض الكل
             </Link>
           </div>
@@ -192,7 +192,7 @@ export default function Dashboard() {
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold">المنتجات الأكثر مبيعاً</h2>
-            <Link href="/products" className="text-primary hover:underline">
+            <Link href="/dashboard/products" className="text-primary hover:underline">
               عرض الكل
             </Link>
           </div>

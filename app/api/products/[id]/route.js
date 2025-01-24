@@ -50,19 +50,22 @@ export async function PUT(request, { params }) {
     await dbConnect();
     const { id } = params;
     const data = await request.json();
-    
-    if (!isValidObjectId(id)) {
-      return NextResponse.json(
-        { error: 'Invalid product ID' },
-        { status: 400 }
-      );
-    }
 
     const product = await Product.findByIdAndUpdate(
       id,
-      data,
-      { new: true, runValidators: true }
-    ).populate('category', 'name nameAr');
+      {
+        name: data.name,
+        nameAr: data.nameAr,
+        description: data.description,
+        descriptionAr: data.descriptionAr,
+        price: data.price,
+        stock: data.stock,
+        category: data.category,
+        images: data.images,
+        isPopular: data.isPopular
+      },
+      { new: true }
+    ).populate('category');
 
     if (!product) {
       return NextResponse.json(
@@ -75,7 +78,7 @@ export async function PUT(request, { params }) {
   } catch (error) {
     console.error('Error updating product:', error);
     return NextResponse.json(
-      { error: 'Internal Server Error' },
+      { error: 'Failed to update product' },
       { status: 500 }
     );
   }

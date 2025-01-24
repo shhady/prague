@@ -5,9 +5,33 @@ import { FiX, FiTrash2, FiPlus, FiMinus } from 'react-icons/fi';
 import { useCart } from '../context/CartContext';
 import Image from 'next/image';
 import Link from 'next/link';
+import { toast } from 'react-hot-toast';
 
 export default function Cart({ isOpen, setIsOpen }) {
   const { cartItems, removeFromCart, updateQuantity, getCartTotal } = useCart();
+
+  const handleIncrement = (item) => {
+    console.log('Incrementing item:', item);
+    
+    const newQuantity = item.quantity + 1;
+    if (typeof item.stock === 'undefined') {
+      console.error('Stock is undefined for item:', item);
+      return;
+    }
+
+    if (newQuantity <= item.stock) {
+      updateQuantity(item.id, newQuantity);
+    } else {
+      toast.error(`عذراً، الكمية المتوفرة ${item.stock} فقط`);
+    }
+  };
+
+  const handleDecrement = (item) => {
+    const newQuantity = item.quantity - 1;
+    if (newQuantity >= 1) {
+      updateQuantity(item.id, newQuantity);
+    }
+  };
 
   return (
     <Transition.Root show={isOpen} as={Fragment}>
@@ -88,10 +112,10 @@ export default function Cart({ isOpen, setIsOpen }) {
                                         <p className="mr-4">{item.price} شيكل</p>
                                       </div>
                                     </div>
-                                    <div className="flex flex-1 items-end justify-between">
+                                    <div className="flex flex-1 items-end justify-between ">
                                       <div className="flex items-center border rounded-lg">
                                         <button
-                                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                          onClick={() => handleDecrement(item)}
                                           disabled={item.quantity <= 1}
                                           className="p-2 text-black hover:bg-gray-100 disabled:opacity-50 disabled:hover:bg-transparent"
                                           aria-label="تقليل الكمية"
@@ -100,10 +124,12 @@ export default function Cart({ isOpen, setIsOpen }) {
                                         </button>
                                         <span className="px-4 py-2 text-black font-medium">
                                           {item.quantity}
+                                         
                                         </span>
                                         <button
-                                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                          className="p-2 text-black hover:bg-gray-100"
+                                          onClick={() => handleIncrement(item)}
+                                          disabled={item.quantity >= item.stock}
+                                          className="p-2 text-black hover:bg-gray-100 disabled:opacity-50"
                                           aria-label="زيادة الكمية"
                                         >
                                           <FiPlus className="h-4 w-4" />
@@ -115,7 +141,7 @@ export default function Cart({ isOpen, setIsOpen }) {
                                         className="text-red-500 hover:text-red-600"
                                         aria-label="حذف من السلة"
                                       >
-                                        <FiTrash2 className="h-5 w-5" />
+                                        <FiTrash2 className="h-6 w-6" />
                                       </button>
                                     </div>
                                   </div>
@@ -140,7 +166,7 @@ export default function Cart({ isOpen, setIsOpen }) {
                           <Link
                             href="/checkout"
                             onClick={() => setIsOpen(false)}
-                            className="flex items-center justify-center rounded-md border border-transparent bg-primary px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-primary-dark"
+                            className="flex items-center justify-center rounded-md border border-transparent bg-gradient-ocean px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-gray-900"
                           >
                             إتمام الشراء
                           </Link>
@@ -148,7 +174,7 @@ export default function Cart({ isOpen, setIsOpen }) {
                         <div className="mt-6 flex justify-center text-center text-sm">
                           <button
                             type="button"
-                            className="font-medium text-primary hover:text-primary-dark"
+                            className="font-medium text-[#04aae7] hover:text-primary-dark"
                             onClick={() => setIsOpen(false)}
                           >
                             مواصلة التسوق

@@ -135,7 +135,7 @@ export default function ProductsPage() {
         <h1 className="text-2xl font-bold">إدارة المنتجات</h1>
         <Link
           href="/dashboard/products/new"
-          className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark flex items-center gap-2"
+          className="bg-gradient-ocean text-white px-4 py-2 rounded-lg hover:bg-primary-dark flex items-center gap-2"
         >
           <FiPlus />
           منتج جديد
@@ -181,9 +181,9 @@ export default function ProductsPage() {
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 التصنيف
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              {/* <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 الحالة
-              </th>
+              </th> */}
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 الإجراءات
               </th>
@@ -233,7 +233,7 @@ export default function ProductsPage() {
                     {product.category?.nameAr || 'غير محدد'}
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                {/* <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                     product.isActive 
                       ? 'bg-green-100 text-green-800' 
@@ -241,7 +241,7 @@ export default function ProductsPage() {
                   }`}>
                     {product.isActive ? 'نشط' : 'غير نشط'}
                   </span>
-                </td>
+                </td> */}
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div className="flex items-center gap-2">
                     <Link

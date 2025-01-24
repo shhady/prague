@@ -28,7 +28,7 @@ export default function NewProductPage() {
     stock: '',
     category: '',
     images: [],
-    isActive: true
+    // isActive: true
   });
 
   const [uploadingImages, setUploadingImages] = useState(false);
@@ -233,7 +233,7 @@ export default function NewProductPage() {
             <button
               type="button"
               onClick={() => setShowCategoryForm(!showCategoryForm)}
-              className="text-primary hover:text-primary-dark flex items-center gap-2"
+              className="text-blue-700 hover:text-primary-dark flex items-center gap-2"
             >
               <FiPlus /> إضافة فئة جديدة
             </button>
@@ -471,7 +471,7 @@ export default function NewProductPage() {
         </div>
 
         {/* Status */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
+        {/* <div className="bg-white p-6 rounded-lg shadow-sm">
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -482,7 +482,7 @@ export default function NewProductPage() {
             />
             <label className="mr-2 text-sm font-medium">نشط</label>
           </div>
-        </div>
+        </div> */}
 
         {/* Submit Button */}
         <div className="flex justify-end">

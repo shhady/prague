@@ -12,9 +12,12 @@
     "migrate": "node scripts/migrate-remove-slug.js"
   },
   "dependencies": {
+    "@clerk/localizations": "^3.10.0",
+    "@clerk/nextjs": "^6.10.2",
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.1.1",
     "chart.js": "^4.4.7",
+    "express-rate-limit": "^7.1.5",
     "file-saver": "^2.0.5",
     "jspdf": "^2.5.1",
     "mongodb": "^6.12.0",
@@ -30,10 +33,10 @@
     "react-medium-image-zoom": "^5.2.13",
     "react-range": "^1.10.0",
     "react-toastify": "^10.0.5",
-    "xlsx": "^0.18.5",
-    "express-rate-limit": "^7.1.5",
+    "sanitize-html": "^2.12.1",
+    "svix": "^1.45.1",
     "validator": "^13.11.0",
-    "sanitize-html": "^2.12.1"
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

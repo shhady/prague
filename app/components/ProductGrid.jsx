@@ -4,18 +4,19 @@ import Link from "next/link";
 export default function ProductGrid({ products, lastProductRef }) {
   const getShade = (index) => {
     // Calculate position in row (0, 1, 2, 3)
-    const position = index % 4;
+    const position = index % 5;
     switch(position) {
       case 0: return 'light';
-      case 1: return 'medium';
+      case 1: return 'medium-light';
       case 2: return 'medium';
-      case 3: return 'dark';
+      case 3: return 'medium-dark';
+      case 4: return 'dark';
       default: return 'light';
     }
   };
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-1 md:gap-2">
       {products.map((product, index) => (
         <div
           key={product._id}
@@ -27,7 +28,7 @@ export default function ProductGrid({ products, lastProductRef }) {
           >
             <ProductCard 
               product={product} 
-              shade="light"
+              shade={'light'}
             />
           </Link>
         </div>

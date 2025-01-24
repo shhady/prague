@@ -3,6 +3,10 @@ import "./globals.css";
 import RootLayoutClient from './RootLayoutClient';
 import { CartProvider } from './context/CartContext';
 import { Toaster } from 'react-hot-toast';
+import { OrderProvider } from './context/OrderContext';
+import { ClerkProvider } from '@clerk/nextjs';
+import { heIL } from '@clerk/localizations';
+import { UserProvider } from './context/UserContext';
 
 const cairo = Cairo({ subsets: ["arabic"] });
 
@@ -14,14 +18,20 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="ar" dir="rtl">
-      <body className={cairo.className}>
-        <CartProvider>
-          <RootLayoutClient>
-            {children}
-          </RootLayoutClient>
-        </CartProvider>
-        <Toaster position="top-center" />
-      </body>
+      <ClerkProvider localization={heIL}>
+        <UserProvider>
+          <body className={cairo.className}>
+            <OrderProvider>
+              <CartProvider>
+                <RootLayoutClient>
+                  {children}
+                </RootLayoutClient>
+              </CartProvider>
+            </OrderProvider>
+            <Toaster position="top-center" />
+          </body>
+        </UserProvider>
+      </ClerkProvider>
     </html>
   );
 } 

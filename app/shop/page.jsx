@@ -7,7 +7,7 @@ import ProductFilters from '../components/ProductFilters';
 import { FiLoader, FiChevronRight, FiChevronLeft } from 'react-icons/fi';
 import Link from 'next/link';
 import ProductCard from '../components/ProductCard';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 const PRICE_RANGES = [
   { label: 'الكل', value: 'all', min: null, max: null },
@@ -30,6 +30,7 @@ function ProductGridSkeleton() {
 
 export default function ShopPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -161,6 +162,10 @@ export default function ShopPage() {
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
+    // If filters are cleared and we're on a category page, update the URL
+    if (!newFilters.category && searchParams.get('category')) {
+      router.push('/shop', { scroll: false });
+    }
   };
 
   const handleSortChange = (newSort) => {

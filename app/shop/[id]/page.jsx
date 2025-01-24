@@ -9,6 +9,7 @@ import ProductImageGallery from '@/app/components/ProductImageGallery';
 import RelatedProducts from '@/app/components/RelatedProducts';
 import ProductReviews from '@/app/components/ProductReviews';
 import { toast } from 'react-hot-toast';
+import Link from 'next/link';
 
 export default function ProductPage({ params }) {
   const { id } = use(params);
@@ -19,10 +20,12 @@ export default function ProductPage({ params }) {
   const { addToCart } = useCart();
   const { addToWishlist, isInWishlist, removeFromWishlist } = useWishlist();
   const [selectedImage, setSelectedImage] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
     fetchProduct();
+    checkAdmin();
   }, [id]);
 
   const fetchProduct = async () => {
@@ -36,6 +39,17 @@ export default function ProductPage({ params }) {
       console.error(error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const checkAdmin = async () => {
+    try {
+      const response = await fetch('/api/users/check-admin');
+      if (response.ok) {
+        setIsAdmin(true);
+      }
+    } catch (error) {
+      console.error('Failed to check admin status');
     }
   };
 
@@ -143,14 +157,7 @@ export default function ProductPage({ params }) {
           <div className="flex gap-4">
             <button
               onClick={() => {
-                addToCart({
-                  id: product._id,
-                  name: product.name,
-                  nameAr: product.nameAr,
-                  price: product.price,
-                  image: product.images[0],
-                  quantity: 1
-                });
+                addToCart(product);
                 toast.success('تمت الإضافة إلى السلة');
               }}
               disabled={product.stock <= 0}
@@ -183,7 +190,40 @@ export default function ProductPage({ params }) {
             </button>
           </div>
 
-         
+          {/* Sales Statistics (only visible to admin) */}
+          {isAdmin && (
+            <div className="mt-8 bg-white p-6 rounded-lg shadow">
+              <h3 className="text-xl font-semibold mb-4">إحصائيات المبيعات</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-blue-50 p-4 rounded">
+                  <p className="text-sm text-gray-600">إجمالي المبيعات</p>
+                  <p className="text-2xl font-bold">{product.sales}</p>
+                </div>
+                <div className="bg-green-50 p-4 rounded">
+                  <p className="text-sm text-gray-600">الإيرادات</p>
+                  <p className="text-2xl font-bold">{product.sales * product.price} ₪</p>
+                </div>
+              </div>
+
+              {/* Sales History */}
+              {product.salesHistory?.length > 0 && (
+                <div className="mt-6">
+                  <h4 className="font-semibold mb-3">سجل المبيعات</h4>
+                  <div className="space-y-2">
+                    {product.salesHistory.map((sale, index) => (
+                      <div key={index} className="flex justify-between text-sm">
+                        <span>{new Date(sale.date).toLocaleDateString('ar')}</span>
+                        <span>{sale.quantity} قطعة</span>
+                        <Link href={`/orders/${sale.orderId}`} className="text-blue-500 hover:underline">
+                          تفاصيل الطلب
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
       <RelatedProducts 

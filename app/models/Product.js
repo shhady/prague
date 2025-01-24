@@ -48,10 +48,7 @@ const productSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  isActive: {
-    type: Boolean,
-    default: true,
-  },
+  
   reviews: [{
     name: String,
     rating: {
@@ -70,6 +67,24 @@ const productSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  salesHistory: [{
+    quantity: Number,
+    date: {
+      type: Date,
+      default: Date.now
+    },
+    orderId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Order'
+    }
+  }]
 }, { timestamps: true });
 
-export default mongoose.models.Product || mongoose.model('Product', productSchema); 
+// Add virtual field for total revenue
+productSchema.virtual('totalRevenue').get(function() {
+  return this.sales * this.price;
+});
+
+const Product = mongoose.models.Product || mongoose.model('Product', productSchema);
+
+export default Product; 

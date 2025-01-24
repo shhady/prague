@@ -7,12 +7,14 @@ import { useWishlist } from '../context/WishlistContext';
 import SearchOverlay from './SearchOverlay';
 import MenuOverlay from './MenuOverlay';
 import Image from 'next/image';
+import { UserButton, useUser } from '@clerk/nextjs';
+import { FaUser } from 'react-icons/fa';
 
 export default function Header({ setIsCartOpen }) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { getWishlistCount, wishlist, isLoaded } = useWishlist();
-
+  const { user } = useUser();
   const WishlistButton = () => {
     return (
       <Link href="/wishlist" className="relative py-2">
@@ -35,6 +37,15 @@ export default function Header({ setIsCartOpen }) {
             <div className="flex items-center gap-4 space-x-reverse">
               <CartButton setIsCartOpen={setIsCartOpen} />
               <WishlistButton />
+              {user ? <UserButton /> : <>
+                  
+                  <Link
+                    href="/sign-in"
+                    className="text-gray-600 hover:text-[#B78628] hidden md:block"
+                  >
+                    <FaUser/>
+                  </Link>
+                </>}
             </div>
 
             {/* Center Logo */}

@@ -1,38 +1,38 @@
 import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
-  name: {
+  clerkId: {
     type: String,
     required: true,
+    unique: true
   },
   email: {
     type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
+    required: true
   },
-  password: {
-    type: String,
-    required: true,
+  name: String,
+  lastOrderDetails: {
+    fullName: String,
+    phone: String,
+    address: String,
+    city: String
   },
-  role: {
-    type: String,
-    enum: ['admin', 'user'],
-    default: 'user',
-  },
-  phone: String,
-  address: {
-    street: String,
-    city: String,
-    state: String,
-    zip: String,
-    country: String,
-  },
+  orders: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Order'
+  }],
   createdAt: {
     type: Date,
-    default: Date.now,
+    default: Date.now
   },
-  lastLogin: Date,
-}, { timestamps: true });
+  updatedAt: { type: Date, default: Date.now }
+});
 
-export default mongoose.models.User || mongoose.model('User', userSchema); 
+// Update the updatedAt timestamp before saving
+userSchema.pre('save', function(next) {
+  this.updatedAt = new Date();
+  next();
+});
+
+const User = mongoose.models.User || mongoose.model('User', userSchema);
+export default User; 

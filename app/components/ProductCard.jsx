@@ -6,7 +6,7 @@ import { useWishlist } from '../context/WishlistContext';
 import Image from 'next/image';
 import { toast } from 'react-hot-toast';
 
-export default function ProductCard({ product, shade = 'light' }) {
+export default function ProductCard({ product, shade }) {
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist, isLoaded } = useWishlist();
 
@@ -15,7 +15,7 @@ export default function ProductCard({ product, shade = 'light' }) {
     return null;
   }
 
-  const { _id, name, nameAr, price, images } = product;
+  const { _id, name, nameAr, price, images, stock } = product;
   const image = images?.[0] || null;
   
   if (!image) {
@@ -38,21 +38,25 @@ export default function ProductCard({ product, shade = 'light' }) {
   const handleAddToCart = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    addToCart({
-      id: _id,
-      name,
-      nameAr,
-      price,
-      image,
-    });
+
+    // Validate stock before adding
+    if (!stock || stock < 1) {
+      toast.error('عذراً، هذا المنتج غير متوفر حالياً');
+      return;
+    }
+
+    // Pass the complete product object
+    addToCart(product);
     toast.success('تمت الإضافة إلى السلة');
   };
 
   return (
     <div className={`relative group ${
       shade === 'light' ? 'bg-white' : 
-      shade === 'medium' ? 'bg-white' : 
-      shade === 'dark' ? 'bg-white' : 
+      shade === 'medium-light' ? 'bg-gray-100' : 
+      shade === 'medium' ? 'bg-gray-200' : 
+      shade === 'medium-dark' ? 'bg-gray-300' : 
+      shade === 'dark' ? 'bg-gray-400' : 
       'bg-white'
     } border rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300`} role="button" tabIndex={0}>
       {/* Wishlist button */}
@@ -93,7 +97,7 @@ export default function ProductCard({ product, shade = 'light' }) {
       
       {/* Product Info */}
       <div className="p-4 space-y-2 flex justify-between items-center">
-        <h3 className="font-medium text-sm ">
+        <h3 className="font-medium text-sm">
           {nameAr || name}
         </h3>
         <p className="text-black font-bold text-lg">
@@ -102,4 +106,4 @@ export default function ProductCard({ product, shade = 'light' }) {
       </div>
     </div>
   );
-} 
+}

@@ -68,15 +68,21 @@ export default forwardRef(function ProductFilters({
   };
 
   const handleClearFilters = () => {
-    const currentCategory = filters.category;
+    // Reset all filters to initial state
     setFilters({
-      category: currentCategory,
+      category: '', // Reset category to empty string
       priceRange: '',
       inStock: false
     });
     setSortBy('newest');
     setSearchInput('');
-    onFilterChange({ category: currentCategory });
+    
+    // Notify parent components of complete reset
+    onFilterChange({
+      category: '', // Pass empty category to show all products
+      priceRange: '',
+      inStock: false
+    });
     onSortChange('newest');
     onSearch('');
   };

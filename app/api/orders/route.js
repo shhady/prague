@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '../../../lib/dbConnect';
+import dbConnect from '@/lib/dbConnect';
 import Order from '@/app/models/Order';
 import Product from '@/app/models/Product';
+import mongoose from 'mongoose';
+import User from '@/app/models/User';
+import Visitor from '@/app/models/Visitor';
 
 // GET /api/orders - Get all orders with pagination and filtering
 export async function GET(request) {
@@ -9,35 +12,51 @@ export async function GET(request) {
     await dbConnect();
     const { searchParams } = new URL(request.url);
     
+    // Get query parameters
     const page = parseInt(searchParams.get('page')) || 1;
     const limit = parseInt(searchParams.get('limit')) || 10;
     const status = searchParams.get('status');
     
+    // Build query
     let query = {};
     if (status) {
       query.status = status;
     }
     
+    // Get total count for pagination
     const total = await Order.countDocuments(query);
-    const orders = await Order.find(query)
-      .populate('user', 'name email')
-      .populate('items.product', 'name nameAr price images')
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .sort({ createdAt: -1 });
     
+    // Get orders with pagination and sorting
+    const orders = await Order.find(query)
+      .select('-paymentInfo.creditCard') // Exclude sensitive data
+      .sort({ createdAt: -1 }) // Sort by newest first
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    // Format the response
+    const formattedOrders = orders.map(order => ({
+      _id: order._id,
+      customerInfo: order.customerInfo,
+      items: order.items,
+      total: order.total,
+      status: order.status,
+      paymentMethod: order.paymentMethod,
+      createdAt: order.createdAt
+    }));
+
     return NextResponse.json({
-      orders,
+      orders: formattedOrders,
       pagination: {
         total,
         page,
         pages: Math.ceil(total / limit),
-      },
+      }
     });
+
   } catch (error) {
-    console.error('Error in GET /api/orders:', error);
+    console.error('Error fetching orders:', error);
     return NextResponse.json(
-      { error: 'Internal Server Error' },
+      { error: 'Failed to fetch orders' },
       { status: 500 }
     );
   }
@@ -45,43 +64,131 @@ export async function GET(request) {
 
 // POST /api/orders - Create a new order
 export async function POST(request) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     await dbConnect();
-    const data = await request.json();
-    
-    // Check stock availability and update stock
-    for (const item of data.items) {
-      const product = await Product.findById(item.product);
-      if (!product) {
-        return NextResponse.json(
-          { error: `Product not found: ${item.product}` },
-          { status: 404 }
-        );
-      }
-      
-      if (product.stock < item.quantity) {
-        return NextResponse.json(
-          { error: `Insufficient stock for product: ${product.nameAr}` },
-          { status: 400 }
-        );
-      }
-      
-      // Update stock
-      product.stock -= item.quantity;
-      await product.save();
+    const body = await request.json();
+    const { items, total, customerInfo, paymentMethod, paymentInfo, customerId, customerType } = body;
+
+    // Basic validation
+    if (!items?.length || !customerInfo || !paymentMethod) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      );
     }
-    
-    const order = await Order.create(data);
-    const populatedOrder = await Order.findById(order._id)
-      .populate('user', 'name email')
-      .populate('items.product', 'name nameAr price images');
-    
-    return NextResponse.json(populatedOrder, { status: 201 });
+
+    // Validate customer info
+    if (!customerInfo.fullName || !customerInfo.phone || 
+        !customerInfo.address || !customerInfo.city || !customerInfo.email) {
+      return NextResponse.json(
+        { error: 'Missing customer information' },
+        { status: 400 }
+      );
+    }
+
+    // Format items for order
+    const formattedItems = items.map(item => ({
+      id: item.id,
+      name: item.name,
+      nameAr: item.nameAr,
+      price: item.price,
+      quantity: item.quantity,
+      image: item.image
+    }));
+
+    // Create order data
+    const orderData = {
+      items: formattedItems,
+      total,
+      customerInfo,
+      paymentMethod,
+      customerType,
+      customer: customerId,
+      status: 'pending',
+      ...(paymentInfo && { paymentInfo })
+    };
+
+    // Add payment info only if payment method is card
+    if (paymentMethod === 'card') {
+      if (!paymentInfo?.creditCard) {
+        throw new Error('Missing card information');
+      }
+      
+      // Store only last 4 digits of credit card
+      const last4Digits = paymentInfo.creditCard.slice(-4);
+      orderData.paymentInfo = {
+        creditCard: `****-****-****-${last4Digits}`,
+        expiryDate: paymentInfo.expiryDate
+      };
+    }
+
+    // Create order
+    const order = await Order.create([orderData], { session });
+
+    // Add order to customer's orders array
+    if (customerType === 'user') {
+      await User.findByIdAndUpdate(
+        customerId,
+        { $push: { orders: order[0]._id } },
+        { session }
+      );
+    } else {
+      await Visitor.findByIdAndUpdate(
+        customerId,
+        { $push: { orders: order[0]._id } },
+        { session }
+      );
+    }
+
+    // Update product stock and sales
+    for (const item of items) {
+      const product = await Product.findById(item.id).session(session);
+      
+      if (!product) {
+        throw new Error(`Product not found: ${item.id}`);
+      }
+
+      if (product.stock < item.quantity) {
+        throw new Error(`Insufficient stock for product: ${product.nameAr || product.name}`);
+      }
+
+      // Update stock and sales
+      product.stock -= item.quantity;
+      product.sales = (product.sales || 0) + item.quantity;
+      
+      // Initialize salesHistory array if it doesn't exist
+      if (!product.salesHistory) {
+        product.salesHistory = [];
+      }
+
+      // Add to sales history
+      product.salesHistory.push({
+        quantity: item.quantity,
+        orderId: order[0]._id
+      });
+
+      await product.save({ session });
+    }
+
+    // Commit the transaction
+    await session.commitTransaction();
+
+    return NextResponse.json({
+      message: 'Order created successfully',
+      orderId: order[0]._id
+    }, { status: 201 });
+
   } catch (error) {
-    console.error('Error in POST /api/orders:', error);
+    await session.abortTransaction();
+    console.error('Error creating order:', error);
     return NextResponse.json(
-      { error: 'Internal Server Error' },
+      { error: 'Failed to create order' },
       { status: 500 }
     );
+  } finally {
+    session.endSession();
   }
 } 
