@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import cloudinary from '@/lib/cloudinary-server';
 
 export async function POST(request) {
   try {
@@ -13,21 +12,24 @@ export async function POST(request) {
       );
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    // Create a new FormData instance for the Cloudinary upload
+    const cloudinaryFormData = new FormData();
+    cloudinaryFormData.append('file', file);
+    cloudinaryFormData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET);
 
-    const result = await new Promise((resolve, reject) => {
-      cloudinary.uploader.upload_stream(
-        {
-          resource_type: 'auto',
-          folder: 'prague-store'
-        },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        }
-      ).end(buffer);
-    });
+    const cloudinaryResponse = await fetch(
+      `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+      {
+        method: 'POST',
+        body: cloudinaryFormData,
+      }
+    );
+
+    if (!cloudinaryResponse.ok) {
+      throw new Error('Failed to upload to Cloudinary');
+    }
+
+    const result = await cloudinaryResponse.json();
 
     return NextResponse.json({
       url: result.secure_url
