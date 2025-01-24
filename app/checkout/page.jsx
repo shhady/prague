@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useUser } from '@clerk/nextjs';
 import Image from 'next/image';
@@ -29,8 +29,8 @@ export default function CheckoutPage() {
   const { user, isLoaded } = useUser();
   const [paymentMethod, setPaymentMethod] = useState('cash'); // 'cash' or 'card'
   const [formData, setFormData] = useState({
-    fullName: '',
-    email: user?.primaryEmailAddress?.emailAddress || '', // Initialize with user's email if available
+    fullName: user?.firstName + " " + user?.lastName || '',
+    email: user?.primaryEmailAddress?.emailAddress || '',
     phone: '',
     address: '',
     city: '',
@@ -38,6 +38,34 @@ export default function CheckoutPage() {
     expiryDate: '',
     cvv: ''
   });
+console.log(user)
+  // Load user's last order details if available
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      if (user) {
+        try {
+          const response = await fetch('/api/users');
+          const userData = await response.json();
+          if (userData.lastOrderDetails) {
+            setFormData(prev => ({
+              ...prev,
+              fullName: userData.lastOrderDetails.fullName || '',
+              phone: userData.lastOrderDetails.phone || '',
+              address: userData.lastOrderDetails.address || '',
+              city: userData.lastOrderDetails.city || '',
+              email: user.primaryEmailAddress?.emailAddress || ''
+            }));
+          }
+        } catch (error) {
+          console.error('Error fetching user details:', error);
+        }
+      }
+    };
+
+    if (isLoaded && user) {
+      fetchUserDetails();
+    }
+  }, [user, isLoaded]);
 
   const [isProcessing, setIsProcessing] = useState(false);
   const router = useRouter();
@@ -130,11 +158,12 @@ export default function CheckoutPage() {
       let customerType;
 
       if (user) {
-        // Save user details if they're logged in
+        // Handle registered user
         const userRes = await fetch('/api/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            email: user.primaryEmailAddress?.emailAddress,
             lastOrderDetails: {
               fullName: formData.fullName,
               phone: formData.phone,
@@ -147,20 +176,42 @@ export default function CheckoutPage() {
         customerId = userData._id;
         customerType = 'user';
       } else {
-        // Save visitor data
-        const visitorRes = await fetch('/api/visitors', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            fullName: formData.fullName,
-            email: formData.email.toLowerCase(),
-            phone: formData.phone,
-            address: formData.address,
-            city: formData.city
-          })
-        });
+        // Check if visitor exists
+        const visitorRes = await fetch(`/api/visitors/check?email=${encodeURIComponent(formData.email)}`);
         const visitorData = await visitorRes.json();
-        customerId = visitorData._id;
+
+        if (visitorData.visitor) {
+          // Update existing visitor
+          const updateRes = await fetch(`/api/visitors/${visitorData.visitor._id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              lastOrderDetails: {
+                fullName: formData.fullName,
+                phone: formData.phone,
+                address: formData.address,
+                city: formData.city
+              }
+            })
+          });
+          const updatedVisitor = await updateRes.json();
+          customerId = updatedVisitor._id;
+        } else {
+          // Create new visitor
+          const createRes = await fetch('/api/visitors', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fullName: formData.fullName,
+              email: formData.email.toLowerCase(),
+              phone: formData.phone,
+              address: formData.address,
+              city: formData.city
+            })
+          });
+          const newVisitor = await createRes.json();
+          customerId = newVisitor._id;
+        }
         customerType = 'visitor';
       }
 
