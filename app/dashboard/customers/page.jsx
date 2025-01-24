@@ -6,7 +6,6 @@ import { toast } from 'react-hot-toast';
 export default function CustomersPage() {
   const { user } = useUser();
   const [customers, setCustomers] = useState({ users: [], visitors: [] });
-  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all'); // 'all', 'registered', 'visitors'
 
@@ -16,27 +15,16 @@ export default function CustomersPage() {
 
   const fetchData = async () => {
     try {
-      const [usersRes, visitorsRes, ordersRes] = await Promise.all([
+      const [usersRes, visitorsRes] = await Promise.all([
         fetch('/api/users'),
-        fetch('/api/visitors'),
-        fetch('/api/orders')
+        fetch('/api/visitors')
       ]);
 
-      const [usersData, visitorsData, ordersData] = await Promise.all([
+      const [usersData, visitorsData] = await Promise.all([
         usersRes.json(),
-        visitorsRes.json(),
-        ordersRes.json()
+        visitorsRes.json()
       ]);
 
-      // Map orders to customers for easier access
-      const ordersByCustomer = (ordersData.orders || []).reduce((acc, order) => {
-        const key = `${order.customerType}-${order.customer}`;
-        if (!acc[key]) acc[key] = [];
-        acc[key].push(order);
-        return acc;
-      }, {});
-
-      setOrders(ordersByCustomer);
       setCustomers({
         users: usersData,
         visitors: visitorsData
@@ -47,11 +35,6 @@ export default function CustomersPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const getOrderCount = (customer) => {
-    const key = `${customer.clerkId ? 'user' : 'visitor'}-${customer._id}`;
-    return (orders[key] || []).length;
   };
 
   const getFilteredCustomers = () => {
@@ -116,9 +99,6 @@ export default function CustomersPage() {
         <table className="min-w-full bg-white rounded-lg overflow-hidden shadow">
           <thead className="bg-gray-50">
             <tr>
-              {/* <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                نوع العميل
-              </th> */}
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 الاسم
               </th>
@@ -142,9 +122,6 @@ export default function CustomersPage() {
           <tbody className="divide-y divide-gray-200">
             {getFilteredCustomers().map((customer, index) => (
               <tr key={customer._id || index} className="hover:bg-gray-50">
-                {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {customer.clerkId ? 'مستخدم مسجل' : 'زائر'}
-                </td> */}
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">
                     {customer.fullName || customer.lastOrderDetails?.fullName || '-'}
