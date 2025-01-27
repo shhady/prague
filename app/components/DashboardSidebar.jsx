@@ -57,11 +57,11 @@ export default function DashboardSidebar() {
       label: 'العملاء',
       icon: FiUsers,
     },
-    {
-      href: '/dashboard/settings',
-      label: 'الإعدادات',
-      icon: FiSettings,
-    },
+    // {
+    //   href: '/dashboard/settings',
+    //   label: 'الإعدادات',
+    //   icon: FiSettings,
+    // },
   ];
 
   if (!mounted) {
