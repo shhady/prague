@@ -25,12 +25,13 @@ export default function OrderConfirmationPage({ params }) {
 
   const fetchOrder = async (orderId) => {
     try {
+      setLoading(true);
       const response = await fetch(`/api/orders/${orderId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch order');
+      }
       const data = await response.json();
-      
-      if (!response.ok) throw new Error(data.error);
-      
-      setOrder(data);
+      setOrder(data.order);
     } catch (error) {
       console.error('Error fetching order:', error);
       toast.error('حدث خطأ أثناء تحميل الطلب');
@@ -69,17 +70,17 @@ export default function OrderConfirmationPage({ params }) {
 
           <div className="border-t border-b py-4 mb-4">
             <h2 className="font-semibold mb-2">معلومات العميل</h2>
-            <p>الاسم: {order.customerInfo.fullName}</p>
-            <p>الهاتف: {order.customerInfo.phone}</p>
-            <p>العنوان: {order.customerInfo.address}</p>
-            <p>المدينة: {order.customerInfo.city}</p>
-            <p>طريقة الدفع: {order.paymentMethod === 'cash' ? 'الدفع عند الاستلام' : 'بطاقة ائتمان'}</p>
+            <p>الاسم: {order?.customerInfo?.fullName}</p>
+            <p>الهاتف: {order?.customerInfo?.phone}</p>
+            <p>العنوان: {order?.customerInfo?.address}</p>
+            <p>المدينة: {order?.customerInfo?.city}</p>
+            <p>طريقة الدفع: {order?.paymentMethod === 'cash' ? 'الدفع عند الاستلام' : 'بطاقة ائتمان'}</p>
           </div>
 
           <div className="mb-6">
             <h2 className="font-semibold mb-4">المنتجات</h2>
             <div className="space-y-4">
-              {order.items.map((item) => (
+              {order?.items?.map((item) => (
                 <div key={item.id} className="flex items-center gap-4">
                   <div className="relative w-20 h-20">
                     <Image

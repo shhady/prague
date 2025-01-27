@@ -1,14 +1,41 @@
 'use client';
-import { useState } from 'react';
-import { Line, Bar } from 'react-chartjs-2';
+import { useState, useEffect } from 'react';
+import { Line } from 'react-chartjs-2';
 import { FiCalendar } from 'react-icons/fi';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+} from 'chart.js';
 
-export default function AdvancedAnalytics({ data }) {
-  const [dateRange, setDateRange] = useState([new Date(new Date().setDate(new Date().getDate() - 30)), new Date()]);
+// Register ChartJS components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
+
+export default function AdvancedAnalytics({ orders = [] }) {
+  const [dateRange, setDateRange] = useState([
+    new Date(new Date().setDate(new Date().getDate() - 30)), 
+    new Date()
+  ]);
   const [startDate, endDate] = dateRange;
   const [activeMetric, setActiveMetric] = useState('revenue');
+  const [chartData, setChartData] = useState(null);
 
   const metrics = {
     revenue: {
@@ -28,33 +55,94 @@ export default function AdvancedAnalytics({ data }) {
     }
   };
 
-  const chartData = {
-    labels: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'],
-    datasets: [
-      {
+  useEffect(() => {
+    if (!orders.length) return;
+
+    // Filter orders by date range and status
+    const filteredOrders = orders.filter(order => {
+      const orderDate = new Date(order.createdAt);
+      return orderDate >= startDate && 
+             orderDate <= endDate && 
+             order.status !== 'cancelled';
+    });
+
+    // Group orders by date
+    const dailyData = {};
+    filteredOrders.forEach(order => {
+      const date = new Date(order.createdAt).toISOString().split('T')[0];
+      if (!dailyData[date]) {
+        dailyData[date] = {
+          revenue: 0,
+          orders: 0,
+          total: 0
+        };
+      }
+      dailyData[date].revenue += order.total;
+      dailyData[date].orders += 1;
+      dailyData[date].total += order.total;
+    });
+
+    // Sort dates and prepare chart data
+    const sortedDates = Object.keys(dailyData).sort();
+    const chartLabels = sortedDates.map(date => 
+      new Date(date).toLocaleDateString('ar-EG', { weekday: 'long', month: 'short', day: 'numeric' })
+    );
+
+    const chartValues = sortedDates.map(date => {
+      switch (activeMetric) {
+        case 'revenue':
+          return dailyData[date].revenue;
+        case 'orders':
+          return dailyData[date].orders;
+        case 'avgOrderValue':
+          return dailyData[date].orders ? dailyData[date].total / dailyData[date].orders : 0;
+        default:
+          return 0;
+      }
+    });
+
+    setChartData({
+      labels: chartLabels,
+      datasets: [{
         label: metrics[activeMetric].label,
-        data: [12000, 19000, 15000, 25000, 22000, 30000],
+        data: chartValues,
         borderColor: metrics[activeMetric].color,
         backgroundColor: `${metrics[activeMetric].color}20`,
         tension: 0.4,
         fill: true
+      }]
+    });
+  }, [orders, startDate, endDate, activeMetric]);
+
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        display: false
+      },
+      title: {
+        display: true,
+        text: `تحليل ${metrics[activeMetric].label}`
       }
-    ]
+    },
+    scales: {
+      y: {
+        beginAtZero: true
+      }
+    }
   };
 
-  const conversionData = {
-    labels: ['زيارات', 'عربة التسوق', 'الدفع', 'إتمام الطلب'],
-    datasets: [{
-      label: 'معدل التحويل',
-      data: [1000, 400, 200, 150],
-      backgroundColor: [
-        '#40E0D0',
-        '#32B8B8',
-        '#248F8F',
-        '#166666'
-      ]
-    }]
-  };
+  // Calculate summary metrics
+  const summaryMetrics = orders.reduce((acc, order) => {
+    if (order.status !== 'cancelled') {
+      acc.totalRevenue += order.total;
+      acc.totalOrders += 1;
+    }
+    return acc;
+  }, { totalRevenue: 0, totalOrders: 0 });
+
+  const completedOrders = orders.filter(order => order.status === 'completed').length;
+  const completionRate = orders.length ? (completedOrders / orders.length) * 100 : 0;
 
   return (
     <div className="space-y-8">
@@ -91,61 +179,38 @@ export default function AdvancedAnalytics({ data }) {
 
       {/* Main Chart */}
       <div className="bg-white p-6 rounded-lg shadow-md">
-        <h3 className="text-lg font-bold mb-6">تحليل {metrics[activeMetric].label}</h3>
-        <Line data={chartData} options={{
-          responsive: true,
-          plugins: {
-            legend: {
-              display: false
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true
-            }
-          }
-        }} />
+        {chartData && <Line data={chartData} options={chartOptions} />}
       </div>
 
-      {/* Conversion Funnel */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-bold mb-6">معدل التحويل</h3>
-          <Bar data={conversionData} options={{
-            responsive: true,
-            plugins: {
-              legend: {
-                display: false
-              }
-            },
-            scales: {
-              y: {
-                beginAtZero: true
-              }
-            }
-          }} />
-        </div>
-
-        {/* Key Metrics */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-bold mb-6">المؤشرات الرئيسية</h3>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-              <span>معدل التحويل</span>
-              <span className="font-bold text-primary">15%</span>
-            </div>
-            <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-              <span>متوسط قيمة الطلب</span>
-              <span className="font-bold text-primary">750 شيكل</span>
-            </div>
-            <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-              <span>معدل التكرار</span>
-              <span className="font-bold text-primary">3.2</span>
-            </div>
-            <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-              <span>معدل الارتداد</span>
-              <span className="font-bold text-red-500">25%</span>
-            </div>
+      {/* Key Metrics */}
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <h3 className="text-lg font-bold mb-6">المؤشرات الرئيسية</h3>
+        <div className="space-y-4">
+          <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+            <span>إجمالي الإيرادات</span>
+            <span className="font-bold text-primary">
+              {summaryMetrics.totalRevenue.toLocaleString()} شيكل
+            </span>
+          </div>
+          <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+            <span>عدد الطلبات</span>
+            <span className="font-bold text-primary">
+              {summaryMetrics.totalOrders}
+            </span>
+          </div>
+          <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+            <span>متوسط قيمة الطلب</span>
+            <span className="font-bold text-primary">
+              {summaryMetrics.totalOrders 
+                ? (summaryMetrics.totalRevenue / summaryMetrics.totalOrders).toLocaleString() 
+                : 0} شيكل
+            </span>
+          </div>
+          <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+            <span>نسبة الطلبات المكتملة</span>
+            <span className="font-bold text-primary">
+              {completionRate.toFixed(1)}%
+            </span>
           </div>
         </div>
       </div>

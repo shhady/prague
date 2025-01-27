@@ -1,29 +1,61 @@
 'use client';
+import { useState, useEffect } from 'react';
 import { FiUsers, FiRepeat, FiDollarSign, FiPercent } from 'react-icons/fi';
 
-export default function CustomerStats({ data }) {
+export default function CustomerStats({sales}) {
+  const [statsData, setStatsData] = useState({
+    totalCustomers: 0,
+    returningCustomers: 0,
+    averageOrderValue: 0,
+    retentionRate: 0
+  });
+
+  useEffect(() => {
+    fetch('/api/usersStats')
+      .then(res => res.json())
+      .then(data => {
+        // Combine users and visitors
+        const allCustomers = [...data.users, ...data.visitors];
+        
+        // Get customers with at least one order
+        const customersWithOrders = allCustomers.filter(customer => 
+          customer.orders && customer.orders.length > 0
+        );
+
+        setStatsData({
+          totalCustomers: allCustomers.length,
+          returningCustomers: allCustomers.filter(customer => 
+            customer.orders && customer.orders.length > 1).length,
+          averageOrderValue: customersWithOrders.length ? 
+            Math.round(Number(sales) / customersWithOrders.length) : 0,
+          retentionRate: Math.round((allCustomers.filter(customer => 
+            customer.orders && customer.orders.length > 1).length / allCustomers.length) * 100)
+        });
+      });
+  }, [sales]);
+
   const stats = [
     {
-      title: 'عملاء جدد',
-      value: data.newCustomers,
+      title: 'إجمالي العملاء',
+      value: statsData.totalCustomers,
       icon: FiUsers,
       color: 'bg-blue-100 text-blue-600'
     },
     {
-      title: 'عملاء عائدون',
-      value: data.returningCustomers,
+      title: 'العملاء المكررين',
+      value: statsData.returningCustomers,
       icon: FiRepeat,
       color: 'bg-green-100 text-green-600'
     },
     {
-      title: 'متوسط قيمة الطلب',
-      value: `${data.averageOrderValue} شيكل`,
+      title: 'متوسط الإنفاق للعميل',
+      value: `${statsData.averageOrderValue} شيكل`,
       icon: FiDollarSign,
       color: 'bg-purple-100 text-purple-600'
     },
     {
       title: 'معدل الاحتفاظ',
-      value: `${data.customerRetentionRate}%`,
+      value: `${statsData.retentionRate}%`,
       icon: FiPercent,
       color: 'bg-orange-100 text-orange-600'
     }

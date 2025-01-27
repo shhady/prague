@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
-import mongoose from 'mongoose';
 import Order from '@/app/models/Order';
 
 // GET /api/orders/[id] - Get order details
@@ -8,11 +7,8 @@ export async function GET(request, { params }) {
   try {
     await dbConnect();
     const { id } = await params;
-
-    const order = await Order.findById(id)
-      .select('-paymentInfo.creditCard')
-      .lean();
-
+    const order = await Order.findById(id);
+    
     if (!order) {
       return NextResponse.json(
         { error: 'Order not found' },
@@ -21,6 +17,7 @@ export async function GET(request, { params }) {
     }
 
     return NextResponse.json({ order });
+    
   } catch (error) {
     console.error('Error fetching order:', error);
     return NextResponse.json(
@@ -83,14 +80,17 @@ export async function PATCH(request, { params }) {
   }
 }
 
+// Update the valid statuses and status notes
+const validStatuses = ['pending', 'processing', 'completed', 'cancelled'];
+
 function getStatusNote(status) {
   switch (status) {
+    case 'pending':
+      return 'تم استلام الطلب';
     case 'processing':
-      return 'جاري تجهيز الطلب';
+      return 'جاري معالجة الطلب';
     case 'completed':
-      return 'تم شحن الطلب';
-    // case 'delivered':
-    //   return 'تم توصيل الطلب';
+      return 'تم اكتمال الطلب';
     case 'cancelled':
       return 'تم إلغاء الطلب';
     default:
@@ -101,12 +101,11 @@ function getStatusNote(status) {
 // DELETE /api/orders/[id] - Cancel order
 export async function DELETE(request, { params }) {
   try {
-    const conn = await dbConnect();
-    const db = conn.connection.db;
+    await dbConnect();
     const { id } = await params;
 
-    const result = await db.collection('orders').findOneAndUpdate(
-      { _id: new mongoose.Types.ObjectId(id) },
+    const result = await Order.findByIdAndUpdate(
+      id,
       {
         $set: {
           status: 'cancelled',
@@ -133,12 +132,44 @@ export async function DELETE(request, { params }) {
   }
 }
 
+// Update the PUT handler to handle status updates
 export async function PUT(request, { params }) {
   try {
     await dbConnect();
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
+    // If status is being updated, add to timeline
+    if (body.status && validStatuses.includes(body.status)) {
+      const timelineEntry = {
+        status: body.status,
+        date: new Date(),
+        note: body.note || getStatusNote(body.status)
+      };
+
+      const order = await Order.findByIdAndUpdate(
+        id,
+        {
+          $set: { 
+            ...body,
+            updatedAt: new Date()
+          },
+          $push: { timeline: timelineEntry }
+        },
+        { new: true }
+      ).select('-paymentInfo.creditCard');
+
+      if (!order) {
+        return NextResponse.json(
+          { error: 'Order not found' },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json({ order });
+    }
+
+    // Handle other updates
     const order = await Order.findByIdAndUpdate(
       id,
       { $set: body },

@@ -31,9 +31,18 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('week'); // week, month, year
   const router = useRouter();
+  const [stats, setStats] = useState({
+    totalSales: 0,
+    totalOrders: 0,
+    totalCustomers: 0,
+    averageOrderValue: 0
+  });
+  const [salesChartData, setSalesChartData] = useState(null);
+  const [ordersChartData, setOrdersChartData] = useState(null);
 
   useEffect(() => {
     fetchAnalytics();
+    fetchStats();
   }, []);
 
   const fetchAnalytics = async () => {
@@ -45,6 +54,33 @@ export default function Dashboard() {
       console.error('Error fetching analytics:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      // Use the existing orders API endpoint
+      const response = await fetch('/api/orders?getAllOrders=true');
+      if (!response.ok) throw new Error('Failed to fetch orders');
+      const data = await response.json();
+      
+      // Calculate stats from orders
+      const orders = data.orders || [];
+      const totalSales = orders.reduce((sum, order) => sum + order.total, 0);
+      const uniqueCustomers = new Set(orders.map(order => order.customerInfo.email));
+      
+      setStats({
+        totalSales: totalSales.toFixed(0),
+        totalOrders: orders.length,
+        totalCustomers: uniqueCustomers.size,
+        averageOrderValue: orders.length ? (totalSales / orders.length).toFixed(0) : 0
+      });
+
+      const { salesData, ordersData } = processChartData(orders);
+      setSalesChartData(salesData);
+      setOrdersChartData(ordersData);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
     }
   };
 
@@ -61,14 +97,6 @@ export default function Dashboard() {
     }
   };
 
-  // Sample data - replace with actual data from your backend
-  const stats = {
-    totalSales: "15,200",
-    totalOrders: "124",
-    totalCustomers: "89",
-    averageOrderValue: "380"
-  };
-
   const chartOptions = {
     responsive: true,
     plugins: {
@@ -77,20 +105,70 @@ export default function Dashboard() {
       },
       title: {
         display: true,
-        text: 'المبيعات حسب الفترة',
+        text: 'المبيعات والطلبات',
       },
     },
+    scales: {
+      y: {
+        beginAtZero: true
+      }
+    }
   };
 
-  const chartData = {
-    labels: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'],
-    datasets: [
-      {
-        label: 'المبيعات',
-        data: [12000, 19000, 15000, 25000, 22000, 30000],
+  // Process orders data for charts
+  const processChartData = (orders) => {
+    // Get last 7 days
+    const last7Days = [...Array(7)].map((_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      return date.toISOString().split('T')[0];
+    }).reverse();
+
+    // Initialize data objects
+    const salesByDay = {};
+    const ordersByDay = {};
+    last7Days.forEach(day => {
+      salesByDay[day] = 0;
+      ordersByDay[day] = 0;
+    });
+
+    // Process orders
+    orders.forEach(order => {
+      const orderDate = new Date(order.createdAt).toISOString().split('T')[0];
+      if (salesByDay.hasOwnProperty(orderDate)) {
+        salesByDay[orderDate] += order.total;
+        ordersByDay[orderDate]++;
+      }
+    });
+
+    // Create chart data
+    const labels = last7Days.map(day => 
+      new Date(day).toLocaleDateString('ar-EG', { weekday: 'long' })
+    );
+
+    const salesData = {
+      labels,
+      datasets: [{
+        label: 'المبيعات (شيكل)',
+        data: Object.values(salesByDay),
         backgroundColor: 'rgba(53, 162, 235, 0.5)',
-      },
-    ],
+        borderColor: 'rgb(53, 162, 235)',
+        borderWidth: 1
+      }]
+    };
+
+    const ordersData = {
+      labels,
+      datasets: [{
+        label: 'عدد الطلبات',
+        data: Object.values(ordersByDay),
+        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+        borderColor: 'rgb(75, 192, 192)',
+        borderWidth: 1
+      }]
+    };
+
+    return { salesData, ordersData };
   };
 
   const handleEditProduct = (product) => {
@@ -113,19 +191,19 @@ export default function Dashboard() {
           <p className="text-gray-600">إحصائيات متجرك لهذا اليوم</p>
         </div>
         <div className="flex items-center gap-4">
-          <div className="relative">
+          {/* <div className="relative">
             <input
               type="text"
               placeholder="بحث..."
               className="w-64 p-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:border-primary"
             />
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          </div>
+          </div> */}
           <div className="relative">
-            <span className="absolute top-0 right-0 -mt-2 -mr-2 bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs">
+            {/* <span className="absolute top-0 right-0 -mt-2 -mr-2 bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs">
               4
-            </span>
-            <button className="p-2 hover:bg-gray-100 rounded-full">
+            </span> */}
+            <button className="p-2 hover:bg-gray-100 rounded-full" onClick={fetchStats}>
               <FiRefreshCcw className="text-xl" />
             </button>
           </div>
@@ -168,10 +246,10 @@ export default function Dashboard() {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <div className="bg-white p-6 rounded-lg shadow-md">
-          <Bar options={chartOptions} data={chartData} />
+          {salesChartData && <Bar options={chartOptions} data={salesChartData} />}
         </div>
         <div className="bg-white p-6 rounded-lg shadow-md">
-          <Bar options={chartOptions} data={chartData} />
+          {ordersChartData && <Bar options={chartOptions} data={ordersChartData} />}
         </div>
       </div>
 
@@ -203,11 +281,11 @@ export default function Dashboard() {
       {/* Customer Stats */}
       <div className="mt-8">
         <h2 className="text-xl font-bold mb-4">إحصائيات العملاء</h2>
-        <CustomerStats data={analytics.customerStats} />
+        <CustomerStats sales={stats.totalSales}/>
       </div>
 
       {/* Advanced Analytics */}
-      <div className="mt-8">
+      {/* <div className="mt-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold">تحليلات متقدمة</h2>
           <button
@@ -218,11 +296,11 @@ export default function Dashboard() {
             تصدير التقرير
           </button>
         </div>
-        <AdvancedAnalytics data={analytics} />
-      </div>
+        <AdvancedAnalytics orders={analytics.orders} />
+      </div> */}
 
       {/* Export Buttons */}
-      <div className="mt-8 flex gap-4">
+      {/* <div className="mt-8 flex gap-4">
         <div className="dropdown relative">
           <button className="btn bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2">
             <FiDownload />
@@ -235,10 +313,9 @@ export default function Dashboard() {
             <button onClick={() => handleExport('sales', 'pdf')}>
               تصدير المبيعات (PDF)
             </button>
-            {/* Add more export options */}
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 } 

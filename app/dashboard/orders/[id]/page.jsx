@@ -10,7 +10,8 @@ import {
   FiMapPin,
   FiCheck,
   FiX,
-  FiTruck
+  FiTruck,
+  FiCheckCircle
 } from 'react-icons/fi';
 import Image from 'next/image';
 import { toast } from 'react-hot-toast';
@@ -63,7 +64,7 @@ export default function OrderDetailsPage() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'delivered':
+      case 'completed':
         return 'bg-green-100 text-green-800';
       case 'processing':
         return 'bg-blue-100 text-blue-800';
@@ -80,12 +81,12 @@ export default function OrderDetailsPage() {
 
   const getStatusText = (status) => {
     switch (status) {
-      case 'delivered':
-        return 'تم التوصيل';
+        case 'delivered':
+            return 'تم التوصيل';
       case 'processing':
         return 'قيد المعالجة';
-      case 'shipped':
-        return 'تم الشحن';
+      case 'completed':
+        return 'مكتمل';
       case 'pending':
         return 'قيد الانتظار';
       case 'cancelled':
@@ -94,6 +95,26 @@ export default function OrderDetailsPage() {
         return 'قيد المعالجة';
     }
   };
+
+  const getTimelineSteps = () => {
+    const defaultSteps = [
+      { status: 'pending', label: 'تم استلام الطلب', icon: FiPackage },
+      { status: 'processing', label: 'قيد المعالجة', icon: FiClock },
+      { status: 'completed', label: 'تم اكتمال الطلب', icon: FiCheckCircle },
+    ];
+
+    if (order.status === 'cancelled') {
+      return [
+        { status: 'pending', label: 'تم استلام الطلب', icon: FiPackage },
+        { status: 'cancelled', label: 'تم إلغاء الطلب', icon: FiX },
+      ];
+    }
+
+    return defaultSteps;
+  };
+
+  // First, let's define the order of statuses
+  const statusOrder = ['pending', 'processing', 'completed'];
 
   if (isLoading) {
     return (
@@ -162,6 +183,50 @@ export default function OrderDetailsPage() {
             <div className="flex items-center">
               <FiMapPin className="text-gray-400 mr-2" />
               <span>{order.customerInfo.address}, {order.customerInfo.city}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Order Timeline */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold mb-4">حالة الطلب</h2>
+          <div className="relative">
+            <div className="absolute top-0 left-8 h-full w-0.5 bg-gray-200"></div>
+            <div className="space-y-8 relative">
+              {getTimelineSteps().map((step, index) => {
+                // Check if this step should be active based on current order status
+                const currentStatusIndex = statusOrder.indexOf(order.status);
+                const stepIndex = statusOrder.indexOf(step.status);
+                const isActive = stepIndex <= currentStatusIndex && order.status !== 'cancelled';
+                
+                const timelineEntry = order.timeline?.find(t => t.status === step.status);
+                
+                return (
+                  <div key={step.status} className="flex items-center gap-4">
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      isActive ? 'bg-primary text-white' : 'bg-gray-200 text-gray-400'
+                    }`}>
+                      <step.icon className="text-2xl" />
+                    </div>
+                    <div>
+                      <h3 className={`font-bold ${isActive ? '' : 'text-gray-400'}`}>
+                        {step.label}
+                      </h3>
+                      {timelineEntry && (
+                        <p className="text-sm text-gray-500">
+                          {new Date(timelineEntry.date).toLocaleDateString('ar-EG', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -237,20 +302,10 @@ export default function OrderDetailsPage() {
             <button
               onClick={() => updateOrderStatus('completed')}
               disabled={isUpdating}
-              className="flex items-center justify-center px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 disabled:opacity-50"
-            >
-              <FiTruck className="mr-2" />
-              تم الشحن
-            </button>
-          )}
-          {order.status === 'shipped' && (
-            <button
-              onClick={() => updateOrderStatus('delivered')}
-              disabled={isUpdating}
               className="flex items-center justify-center px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50"
             >
-              <FiCheck className="mr-2" />
-              تأكيد التوصيل
+              <FiCheckCircle className="mr-2" />
+              اكتمال الطلب
             </button>
           )}
         </div>
