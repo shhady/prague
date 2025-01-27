@@ -5,7 +5,7 @@ import Category from '@/app/models/Category';
 export async function PUT(request, { params }) {
   try {
     await dbConnect();
-    const { id } = params;
+    const { id } = await params;
     const data = await request.json();
 
     const category = await Category.findByIdAndUpdate(

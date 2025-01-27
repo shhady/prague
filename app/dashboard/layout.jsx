@@ -21,13 +21,11 @@ export default function DashboardLayout({ children }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="flex">
-        <DashboardSidebar />
-        <main className="flex-1 p-4">
-          {children}
-        </main>
-      </div>
+    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
+      <DashboardSidebar />
+      <main className="flex-1 p-4 lg:p-8 mt-20">
+        {children}
+      </main>
     </div>
   );
 } 

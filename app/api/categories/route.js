@@ -4,11 +4,11 @@ import Category from '@/app/models/Category';
 
 export async function GET() {
   try {
-    const conn = await dbConnect();
+     await dbConnect();
     const categories = await Category.find({})
       .select('name nameAr description descriptionAr image') // Added descriptions
       .lean() // Convert to plain JS objects
-      .limit(20); // Limit results
+      
 
     return NextResponse.json(categories);
   } catch (error) {

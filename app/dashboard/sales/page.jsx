@@ -242,30 +242,30 @@ export default function SalesPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4 lg:p-6">
       {/* Statistics Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-2">إجمالي المبيعات</h3>
-          <p className="text-3xl font-bold">{Number(stats.totalSales).toLocaleString()} ₪</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8">
+        <div className="bg-white p-4 lg:p-6 rounded-lg shadow">
+          <h3 className="text-base lg:text-lg font-semibold mb-2">إجمالي المبيعات</h3>
+          <p className="text-2xl lg:text-3xl font-bold">{Number(stats.totalSales).toLocaleString()} ₪</p>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-2">عدد الطلبات</h3>
-          <p className="text-3xl font-bold">{stats.totalOrders}</p>
+        <div className="bg-white p-4 lg:p-6 rounded-lg shadow">
+          <h3 className="text-base lg:text-lg font-semibold mb-2">عدد الطلبات</h3>
+          <p className="text-2xl lg:text-3xl font-bold">{stats.totalOrders}</p>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-2">متوسط قيمة الطلب</h3>
-          <p className="text-3xl font-bold">{Number(stats.averageOrderValue).toLocaleString()} ₪</p>
+        <div className="bg-white p-4 lg:p-6 rounded-lg shadow sm:col-span-2 lg:col-span-1">
+          <h3 className="text-base lg:text-lg font-semibold mb-2">متوسط قيمة الطلب</h3>
+          <p className="text-2xl lg:text-3xl font-bold">{Number(stats.averageOrderValue).toLocaleString()} ₪</p>
         </div>
       </div>
 
       {/* Controls */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
           <select
             value={timeRange}
             onChange={(e) => setTimeRange(e.target.value)}
-            className="border rounded-md px-3 py-2"
+            className="border rounded-md px-3 py-2 w-full sm:w-auto"
           >
             <option value="week">آخر أسبوع</option>
             <option value="month">آخر شهر</option>
@@ -274,7 +274,7 @@ export default function SalesPage() {
           <select
             value={chartType}
             onChange={(e) => setChartType(e.target.value)}
-            className="border rounded-md px-3 py-2"
+            className="border rounded-md px-3 py-2 w-full sm:w-auto"
           >
             <option value="line">رسم بياني خطي</option>
             <option value="bar">رسم بياني شريطي</option>
@@ -316,7 +316,7 @@ export default function SalesPage() {
             link.download = `sales_report_${new Date().toISOString().split('T')[0]}.csv`;
             link.click();
           }}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-ocean text-white rounded-md hover:bg-primary-dark"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-gradient-ocean text-white rounded-md hover:bg-primary-dark"
         >
           <FiDownload />
           تصدير التقرير
@@ -324,38 +324,61 @@ export default function SalesPage() {
       </div>
 
       {/* Chart */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        {salesData && (
-          chartType === 'line' ? (
-            <Line options={chartOptions} data={salesData} />
-          ) : (
-            <Bar options={chartOptions} data={salesData} />
-          )
-        )}
+      <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 lg:p-6 mb-6 lg:mb-8 overflow-x-auto">
+        <div className="min-w-[300px]">
+          {salesData && (
+            chartType === 'line' ? (
+              <Line options={chartOptions} data={salesData} />
+            ) : (
+              <Bar options={chartOptions} data={salesData} />
+            )
+          )}
+        </div>
       </div>
 
       {/* Top Products */}
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold mb-4">أفضل المنتجات مبيعاً</h2>
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="mt-6 lg:mt-8">
+        <h2 className="text-lg lg:text-xl font-semibold mb-4">أفضل المنتجات مبيعاً</h2>
+        
+        {/* Desktop Table */}
+        <div className="hidden sm:block bg-white rounded-lg shadow overflow-hidden">
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">المنتج</th>
-                <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">المبيعات</th>
-                <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">الإيرادات</th>
+                <th className="px-4 lg:px-6 py-3 text-right text-sm font-semibold text-gray-900">المنتج</th>
+                <th className="px-4 lg:px-6 py-3 text-right text-sm font-semibold text-gray-900">المبيعات</th>
+                <th className="px-4 lg:px-6 py-3 text-right text-sm font-semibold text-gray-900">الإيرادات</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {topProducts.map((product) => (
                 <tr key={product.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">{product.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{product.sales}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{product.revenue.toLocaleString()} ₪</td>
+                  <td className="px-4 lg:px-6 py-4 whitespace-nowrap">{product.name}</td>
+                  <td className="px-4 lg:px-6 py-4 whitespace-nowrap">{product.sales}</td>
+                  <td className="px-4 lg:px-6 py-4 whitespace-nowrap">{product.revenue.toLocaleString()} ₪</td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Cards */}
+        <div className="sm:hidden space-y-4">
+          {topProducts.map((product) => (
+            <div key={product.id} className="bg-white p-4 rounded-lg shadow">
+              <h3 className="font-semibold mb-2">{product.name}</h3>
+              <div className="flex justify-between text-sm">
+                <div>
+                  <p className="text-gray-600">المبيعات</p>
+                  <p className="font-medium">{product.sales}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">الإيرادات</p>
+                  <p className="font-medium">{product.revenue.toLocaleString()} ₪</p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

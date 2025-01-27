@@ -220,61 +220,61 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard
-          title="إجمالي المبيعات"
-          value={`${stats.totalSales} شيكل`}
-          icon={FiDollarSign}
-        />
-        <StatCard
-          title="عدد الطلبات"
-          value={stats.totalOrders}
-          icon={FiShoppingBag}
-        />
-        <StatCard
-          title="عدد العملاء"
-          value={stats.totalCustomers}
-          icon={FiUsers}
-        />
-        <StatCard
-          title="متوسط قيمة الطلب"
-          value={`${stats.averageOrderValue} شيكل`}
-          icon={FiTrendingUp}
-        />
-      </div>
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          {salesChartData && <Bar options={chartOptions} data={salesChartData} />}
+      <div className="space-y-6">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard
+            title="إجمالي المبيعات"
+            value={`${stats.totalSales} شيكل`}
+            icon={FiDollarSign}
+          />
+          <StatCard
+            title="عدد الطلبات"
+            value={stats.totalOrders}
+            icon={FiShoppingBag}
+          />
+          <StatCard
+            title="عدد العملاء"
+            value={stats.totalCustomers}
+            icon={FiUsers}
+          />
+          <StatCard
+            title="متوسط قيمة الطلب"
+            value={`${stats.averageOrderValue} شيكل`}
+            icon={FiTrendingUp}
+          />
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          {ordersChartData && <Bar options={chartOptions} data={ordersChartData} />}
-        </div>
-      </div>
 
-      {/* Additional Sections */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-        {/* Recent Orders */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold">أحدث الطلبات</h2>
-            <Link href="/dashboard/orders" className="text-primary hover:underline">
-              عرض الكل
-            </Link>
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white p-4 rounded-lg shadow">
+            {salesChartData && <Bar options={chartOptions} data={salesChartData} />}
           </div>
-          <RecentOrders />
+          <div className="bg-white p-4 rounded-lg shadow">
+            {ordersChartData && <Bar options={chartOptions} data={ordersChartData} />}
+          </div>
         </div>
 
-        {/* Top Products */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold">المنتجات الأكثر مبيعاً</h2>
-            <Link href="/dashboard/products" className="text-primary hover:underline">
-              عرض الكل
-            </Link>
+        {/* Recent Orders & Top Products */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white p-4 rounded-lg shadow">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold">أحدث الطلبات</h2>
+              <Link href="/dashboard/orders" className="text-primary hover:underline">
+                عرض الكل
+              </Link>
+            </div>
+            <RecentOrders />
           </div>
-          <TopProducts />
+          <div className="bg-white p-4 rounded-lg shadow">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold">المنتجات الأكثر مبيعاً</h2>
+              <Link href="/dashboard/products" className="text-primary hover:underline">
+                عرض الكل
+              </Link>
+            </div>
+            <TopProducts />
+          </div>
         </div>
       </div>
 

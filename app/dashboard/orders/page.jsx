@@ -4,6 +4,7 @@ import { FiEye, FiCheck, FiTruck, FiX } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
 import Image from 'next/image';
 import { useOrders } from '@/app/context/OrderContext';
+import Link from 'next/link';
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -24,6 +25,16 @@ export default function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { orders, fetchOrders, updatePendingOrdersCount } = useOrders();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  // Filter orders based on search term and status
+  const filteredOrders = orders.filter(order => {
+    const matchesSearch = order.customerInfo.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         order._id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   useEffect(() => {
     const loadOrders = async () => {
@@ -58,99 +69,194 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">إدارة الطلبات</h1>
+    <div className="space-y-4">
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <input 
+          type="text"
+          placeholder="بحث بإسم العميل أو رقم الطلب..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="flex-1 p-2 border rounded"
+        />
+        <select 
+          className="p-2 border rounded"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
+          <option value="all">كل الحالات</option>
+          <option value="pending">قيد الانتظار</option>
+          <option value="processing">قيد المعالجة</option>
+          <option value="completed">مكتمل</option>
+          <option value="cancelled">ملغي</option>
+        </select>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                رقم الطلب
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                العميل
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                المجموع
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                الحالة
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                التاريخ
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                الإجراءات
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {orders.map((order) => (
-              <tr key={order._id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="text-sm font-medium text-gray-900">
-                    {order._id.substring(0, 8)}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{order.customerInfo.fullName}</div>
-                  <div className="text-sm text-gray-500">{order.customerInfo.phone}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="text-sm text-gray-900">{order.total} ₪</span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[order.status]}`}>
-                    {statusText[order.status]}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(order.createdAt).toLocaleDateString('ar')}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => {
-                        setSelectedOrder(order);
-                        setIsModalOpen(true);
-                      }}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      <FiEye className="w-5 h-5" />
-                    </button>
-                    {order.status === 'pending' && (
+      {/* Orders Table/Cards */}
+      <div className="hidden lg:block"> {/* Desktop Table */}
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  رقم الطلب
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  العميل
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  المجموع
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  الحالة
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  التاريخ
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  الإجراءات
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredOrders.map((order) => (
+                <tr key={order._id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="text-sm font-medium text-gray-900">
+                      {order._id.substring(0, 8)}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{order.customerInfo.fullName}</div>
+                    <div className="text-sm text-gray-500">{order.customerInfo.phone}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="text-sm text-gray-900">{order.total} ₪</span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[order.status]}`}>
+                      {statusText[order.status]}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {new Date(order.createdAt).toLocaleDateString('ar')}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex items-center gap-2">
                       <button
-                        onClick={() => updateOrderStatus(order._id, 'processing')}
+                        onClick={() => {
+                          setSelectedOrder(order);
+                          setIsModalOpen(true);
+                        }}
                         className="text-blue-600 hover:text-blue-900"
                       >
-                        <FiCheck className="w-5 h-5" />
+                        <FiEye className="w-5 h-5" />
                       </button>
-                    )}
-                    {order.status === 'processing' && (
-                      <button
-                        onClick={() => updateOrderStatus(order._id, 'completed')}
-                        className="text-green-600 hover:text-green-900"
-                      >
-                        <FiTruck className="w-5 h-5" />
-                      </button>
-                    )}
-                    {order.status === 'pending' && (
-                      <button
-                        onClick={() => updateOrderStatus(order._id, 'cancelled')}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <FiX className="w-5 h-5" />
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                      {order.status === 'pending' && (
+                        <button
+                          onClick={() => updateOrderStatus(order._id, 'processing')}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          <FiCheck className="w-5 h-5" />
+                        </button>
+                      )}
+                      {order.status === 'processing' && (
+                        <button
+                          onClick={() => updateOrderStatus(order._id, 'completed')}
+                          className="text-green-600 hover:text-green-900"
+                        >
+                          <FiTruck className="w-5 h-5" />
+                        </button>
+                      )}
+                      {order.status === 'pending' && (
+                        <button
+                          onClick={() => updateOrderStatus(order._id, 'cancelled')}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          <FiX className="w-5 h-5" />
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="lg:hidden"> {/* Mobile Cards */}
+        <div className="space-y-4">
+          {filteredOrders.map(order => (
+            <div key={order._id} className="bg-white p-4 rounded-lg shadow">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <p className="font-bold">#{order._id.slice(-6)}</p>
+                  <p className="text-sm text-gray-500">
+                    {new Date(order.createdAt).toLocaleDateString('ar')}
+                  </p>
+                </div>
+                <span className={`px-2 py-1 rounded-full text-sm ${statusColors[order.status]}`}>
+                  {statusText[order.status]}
+                </span>
+              </div>
+              
+              <div className="space-y-2">
+                <p>العميل: {order.customerInfo.fullName}</p>
+                <p>المجموع: {order.total} شيكل</p>
+              </div>
+
+              {/* Status Control Buttons */}
+              <div className="mt-4 flex flex-wrap gap-2">
+                {order.status === 'pending' && (
+                  <>
+                    <button
+                      onClick={() => updateOrderStatus(order._id, 'processing')}
+                      className="flex-1 bg-blue-500 text-white px-3 py-1.5 rounded-md text-sm flex items-center justify-center gap-1"
+                    >
+                      <FiCheck className="w-4 h-4" />
+                      بدأ المعالجة
+                    </button>
+                    <button
+                      onClick={() => updateOrderStatus(order._id, 'cancelled')}
+                      className="flex-1 bg-red-500 text-white px-3 py-1.5 rounded-md text-sm flex items-center justify-center gap-1"
+                    >
+                      <FiX className="w-4 h-4" />
+                      إلغاء
+                    </button>
+                  </>
+                )}
+                {order.status === 'processing' && (
+                  <button
+                    onClick={() => updateOrderStatus(order._id, 'completed')}
+                    className="w-full bg-green-500 text-white px-3 py-1.5 rounded-md text-sm flex items-center justify-center gap-1"
+                  >
+                    <FiTruck className="w-4 h-4" />
+                    إتمام الطلب
+                  </button>
+                )}
+              </div>
+
+              <Link 
+                href={`/dashboard/orders/${order._id}`}
+                className="mt-4 text-primary block text-center text-sm"
+              >
+                عرض التفاصيل
+              </Link>
+            </div>
+          ))}
+        </div>
+
+        {filteredOrders.length === 0 && (
+          <div className="text-center py-8 bg-white rounded-lg shadow">
+            <p className="text-gray-500">لا توجد طلبات تطابق البحث</p>
+          </div>
+        )}
+      </div>
+
+      {/* Pagination */}
+      <div className="flex justify-center mt-6">
+        {/* ... pagination ... */}
       </div>
 
       {/* Order Details Modal */}
@@ -232,7 +338,7 @@ export default function OrdersPage() {
                       }}
                       className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                     >
-                      قبول الطلب
+                       بدأ المعالجة
                     </button>
                     <button
                       onClick={() => {
