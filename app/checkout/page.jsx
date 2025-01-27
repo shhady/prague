@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 
+const USER_DETAILS_STORAGE_KEY = 'prague_checkout_details';
+
 const validatePhone = (phone) => {
   // Palestinian phone number format
   const phoneRegex = /^(05[0-9]{8}|02[0-9]{7})$/;
@@ -29,8 +31,8 @@ export default function CheckoutPage() {
   const { user, isLoaded } = useUser();
   const [paymentMethod, setPaymentMethod] = useState('cash'); // 'cash' or 'card'
   const [formData, setFormData] = useState({
-    fullName: user?.firstName + " " + user?.lastName || '',
-    email: user?.primaryEmailAddress?.emailAddress || '',
+    fullName: '',
+    email: '',
     phone: '',
     address: '',
     city: '',
@@ -38,34 +40,67 @@ export default function CheckoutPage() {
     expiryDate: '',
     cvv: ''
   });
-console.log(user)
-  // Load user's last order details if available
+
+  // Load saved form data on mount
   useEffect(() => {
-    const fetchUserDetails = async () => {
+    if (isLoaded) {
       if (user) {
-        try {
-          const response = await fetch('/api/users');
-          const userData = await response.json();
-          if (userData.lastOrderDetails) {
+        // First try to get data from signed-in user
+        setFormData(prev => ({
+          ...prev,
+          fullName: user?.firstName + " " + user?.lastName || '',
+          email: user?.primaryEmailAddress?.emailAddress || '',
+        }));
+        
+        // Then fetch additional user details from API
+        fetchUserDetails();
+      } else {
+        // If no signed-in user, try to get from localStorage
+        const savedDetails = localStorage.getItem(USER_DETAILS_STORAGE_KEY);
+        if (savedDetails) {
+          try {
+            const parsedDetails = JSON.parse(savedDetails);
             setFormData(prev => ({
               ...prev,
-              fullName: userData.lastOrderDetails.fullName || '',
-              phone: userData.lastOrderDetails.phone || '',
-              address: userData.lastOrderDetails.address || '',
-              city: userData.lastOrderDetails.city || '',
-              email: user.primaryEmailAddress?.emailAddress || ''
+              ...parsedDetails
             }));
+          } catch (error) {
+            console.error('Error parsing saved user details:', error);
+            localStorage.removeItem(USER_DETAILS_STORAGE_KEY);
           }
-        } catch (error) {
-          console.error('Error fetching user details:', error);
         }
       }
-    };
-
-    if (isLoaded && user) {
-      fetchUserDetails();
     }
   }, [user, isLoaded]);
+
+  // Save form data to localStorage when it changes
+  useEffect(() => {
+    if (!user && isLoaded) {
+      localStorage.setItem(USER_DETAILS_STORAGE_KEY, JSON.stringify({
+        fullName: formData.fullName,
+        phone: formData.phone,
+        address: formData.address,
+        city: formData.city
+      }));
+    }
+  }, [formData, user, isLoaded]);
+
+  const fetchUserDetails = async () => {
+    try {
+      const response = await fetch('/api/users');
+      const userData = await response.json();
+      if (userData.lastOrderDetails) {
+        setFormData(prev => ({
+          ...prev,
+          phone: userData.lastOrderDetails.phone || '',
+          address: userData.lastOrderDetails.address || '',
+          city: userData.lastOrderDetails.city || ''
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+    }
+  };
 
   const [isProcessing, setIsProcessing] = useState(false);
   const router = useRouter();
@@ -307,7 +342,7 @@ console.log(user)
               <input
                 type="text"
                 name="fullName"
-                value={formData.fullName}
+                value={formData.fullName || ''}
                 onChange={handleInputChange}
                 required
                 className="w-full p-2 border rounded-md"

@@ -1,11 +1,35 @@
 'use client';
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 
 const CartContext = createContext();
 
+const CART_STORAGE_KEY = 'prague_cart';
+
 export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState([]);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Load cart from localStorage on mount
+  useEffect(() => {
+    const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+    if (savedCart) {
+      try {
+        setCartItems(JSON.parse(savedCart));
+      } catch (error) {
+        console.error('Error parsing cart from localStorage:', error);
+        localStorage.removeItem(CART_STORAGE_KEY);
+      }
+    }
+    setIsLoaded(true);
+  }, []);
+
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+    }
+  }, [cartItems, isLoaded]);
 
   const addToCart = (product) => {
     // Ensure product has stock information
@@ -80,6 +104,7 @@ export function CartProvider({ children }) {
 
   const clearCart = () => {
     setCartItems([]);
+    localStorage.removeItem(CART_STORAGE_KEY);
   };
 
   const getCartTotal = () => {
@@ -89,6 +114,11 @@ export function CartProvider({ children }) {
   const getCartCount = () => {
     return cartItems.reduce((count, item) => count + item.quantity, 0);
   };
+
+  // Only render children once initial cart is loaded
+  if (!isLoaded) {
+    return null;
+  }
 
   return (
     <CartContext.Provider value={{

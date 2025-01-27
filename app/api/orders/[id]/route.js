@@ -5,13 +5,14 @@ import Order from '@/app/models/Order';
 
 // GET /api/orders/[id] - Get order details
 export async function GET(request, { params }) {
-
-  const {id} = await params;
   try {
     await dbConnect();
-    
-    const order = await Order.findById(id);
-    
+    const { id } = await params;
+
+    const order = await Order.findById(id)
+      .select('-paymentInfo.creditCard')
+      .lean();
+
     if (!order) {
       return NextResponse.json(
         { error: 'Order not found' },
@@ -19,7 +20,7 @@ export async function GET(request, { params }) {
       );
     }
 
-    return NextResponse.json(order);
+    return NextResponse.json({ order });
   } catch (error) {
     console.error('Error fetching order:', error);
     return NextResponse.json(
@@ -86,10 +87,10 @@ function getStatusNote(status) {
   switch (status) {
     case 'processing':
       return 'جاري تجهيز الطلب';
-    case 'shipped':
+    case 'completed':
       return 'تم شحن الطلب';
-    case 'delivered':
-      return 'تم توصيل الطلب';
+    // case 'delivered':
+    //   return 'تم توصيل الطلب';
     case 'cancelled':
       return 'تم إلغاء الطلب';
     default:
@@ -102,7 +103,7 @@ export async function DELETE(request, { params }) {
   try {
     const conn = await dbConnect();
     const db = conn.connection.db;
-    const { id } = params;
+    const { id } = await params;
 
     const result = await db.collection('orders').findOneAndUpdate(
       { _id: new mongoose.Types.ObjectId(id) },
@@ -127,6 +128,35 @@ export async function DELETE(request, { params }) {
     console.error('Error cancelling order:', error);
     return NextResponse.json(
       { error: 'حدث خطأ أثناء إلغاء الطلب' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request, { params }) {
+  try {
+    await dbConnect();
+    const { id } = params;
+    const body = await request.json();
+
+    const order = await Order.findByIdAndUpdate(
+      id,
+      { $set: body },
+      { new: true }
+    ).select('-paymentInfo.creditCard');
+
+    if (!order) {
+      return NextResponse.json(
+        { error: 'Order not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ order });
+  } catch (error) {
+    console.error('Error updating order:', error);
+    return NextResponse.json(
+      { error: 'Failed to update order' },
       { status: 500 }
     );
   }

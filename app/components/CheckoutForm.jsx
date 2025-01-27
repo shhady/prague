@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { useUserDetails } from '../context/UserContext';
 import { toast } from 'react-hot-toast';
 
+const USER_DETAILS_STORAGE_KEY = 'prague_user_details';
+
 export default function CheckoutForm({ onSubmit, isSubmitting }) {
   const { userDetails, isSignedIn } = useUserDetails();
   const [formData, setFormData] = useState({
@@ -13,49 +15,42 @@ export default function CheckoutForm({ onSubmit, isSubmitting }) {
     city: ''
   });
 
+  // Load saved form data on mount
   useEffect(() => {
-    if (userDetails?.lastOrderDetails) {
-      setFormData({
-        fullName: userDetails.lastOrderDetails.fullName || '',
+    // First try to get data from signed-in user
+    if (isSignedIn && userDetails) {
+      setFormData(prevData => ({
+        ...prevData,
+        fullName: userDetails.name || '',
         email: userDetails.email || '',
-        phone: userDetails.lastOrderDetails.phone || '',
-        address: userDetails.lastOrderDetails.address || '',
-        city: userDetails.lastOrderDetails.city || ''
-      });
-    } else if (userDetails?.email) {
-      setFormData(prev => ({
-        ...prev,
-        email: userDetails.email
+        phone: userDetails.phone || '',
+        address: userDetails.address || '',
+        city: userDetails.city || ''
       }));
-    }
-  }, [userDetails]);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Basic validation
-    if (!formData.email || !formData.email.includes('@')) {
-      toast.error('الرجاء إدخال بريد إلكتروني صحيح');
-      return;
-    }
-    
-    if (!formData.fullName || !formData.phone || !formData.address || !formData.city) {
-      toast.error('الرجاء إكمال جميع الحقول المطلوبة');
-      return;
-    }
-
-    try {
-      await onSubmit({
-        customerInfo: {
-          ...formData,
-          email: formData.email.toLowerCase().trim()
+    } else {
+      // If no signed-in user, try to get from localStorage
+      const savedDetails = localStorage.getItem(USER_DETAILS_STORAGE_KEY);
+      if (savedDetails) {
+        try {
+          const parsedDetails = JSON.parse(savedDetails);
+          setFormData(prevData => ({
+            ...prevData,
+            ...parsedDetails
+          }));
+        } catch (error) {
+          console.error('Error parsing saved user details:', error);
+          localStorage.removeItem(USER_DETAILS_STORAGE_KEY);
         }
-      });
-    } catch (error) {
-      console.error('Checkout error:', error);
-      toast.error('حدث خطأ أثناء إتمام الطلب');
+      }
     }
-  };
+  }, [isSignedIn, userDetails]);
+
+  // Save form data to localStorage when it changes
+  useEffect(() => {
+    if (!isSignedIn) {
+      localStorage.setItem(USER_DETAILS_STORAGE_KEY, JSON.stringify(formData));
+    }
+  }, [formData, isSignedIn]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -65,11 +60,37 @@ export default function CheckoutForm({ onSubmit, isSubmitting }) {
     }));
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Validate form
+    if (!formData.fullName || !formData.email || !formData.phone || !formData.address || !formData.city) {
+      toast.error('يرجى تعبئة جميع الحقول المطلوبة');
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error('يرجى إدخال بريد إلكتروني صحيح');
+      return;
+    }
+
+    // Phone validation (Palestinian format)
+    const phoneRegex = /^(05[0-9]{8}|02[0-9]{7})$/;
+    if (!phoneRegex.test(formData.phone)) {
+      toast.error('يرجى إدخال رقم هاتف صحيح');
+      return;
+    }
+
+    await onSubmit(formData);
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
-          الاسم الكامل *
+          الاسم الكامل
         </label>
         <input
           type="text"
@@ -77,8 +98,8 @@ export default function CheckoutForm({ onSubmit, isSubmitting }) {
           name="fullName"
           value={formData.fullName}
           onChange={handleChange}
-          required
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-ocean-500 focus:ring-ocean-500"
+          required
         />
       </div>
 

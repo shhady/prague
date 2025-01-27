@@ -5,7 +5,7 @@ export default function OrderDetails({ order }) {
   const getStatusSteps = () => {
     const steps = [
       { icon: FiCheck, label: 'تم تأكيد الطلب', description: 'تم استلام طلبك' },
-      { icon: FiPackage, label: 'جاري التجهيز', description: 'يتم تجهيز طلبك' },
+      { icon: FiPackage, label: 'جاري المعالجة', description: 'يتم تجهيز طلبك' },
       { icon: FiTruck, label: 'تم الشحن', description: 'طلبك في الطريق' },
       { icon: FiHome, label: 'تم التوصيل', description: 'تم توصيل طلبك بنجاح' },
     ];
@@ -14,7 +14,7 @@ export default function OrderDetails({ order }) {
       switch (order.status) {
         case 'processing':
           return index === 1;
-        case 'shipped':
+        case 'completed':
           return index === 2;
         case 'delivered':
           return index === 3;

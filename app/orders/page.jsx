@@ -35,7 +35,7 @@ export default function Orders() {
       case 'delivered':
         return 'تم التوصيل';
       case 'processing':
-        return 'قيد التجهيز';
+        return 'قيد المعالجة';
       case 'shipped':
         return 'تم الشحن';
       default:

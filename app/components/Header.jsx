@@ -30,7 +30,7 @@ export default function Header({ setIsCartOpen }) {
 
   return (
     <>
-      <header className="bg-white border-b flex justify-center items-center px-2" dir="ltr">
+      <header className="bg-white border-b flex justify-center items-center px-2 sticky top-0 z-50" dir="ltr">
         <div className="container">
           <div className="flex justify-between items-center h-24">
             {/* Left Section */}
@@ -41,7 +41,7 @@ export default function Header({ setIsCartOpen }) {
                   
                   <Link
                     href="/sign-in"
-                    className="text-gray-600 hover:text-[#B78628] hidden md:block"
+                    className="text-gray-600 hover:text-[#B78628]"
                   >
                     <FaUser/>
                   </Link>

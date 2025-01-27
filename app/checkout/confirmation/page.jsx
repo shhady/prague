@@ -56,7 +56,7 @@ export default function OrderConfirmation() {
                   <FiPackage className="text-2xl" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-400">جاري التجهيز</h3>
+                  <h3 className="font-bold text-gray-400">جاري المعالجة</h3>
                   <p className="text-gray-600">سيتم تجهيز طلبك قريباً</p>
                 </div>
               </div>

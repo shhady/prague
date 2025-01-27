@@ -14,7 +14,7 @@ export async function GET(request) {
     
     // Get query parameters
     const page = parseInt(searchParams.get('page')) || 1;
-    const limit = parseInt(searchParams.get('limit')) || 10;
+    // const limit = parseInt(searchParams.get('limit')) || 10;
     const status = searchParams.get('status');
     
     // Build query
@@ -30,8 +30,8 @@ export async function GET(request) {
     const orders = await Order.find(query)
       .select('-paymentInfo.creditCard') // Exclude sensitive data
       .sort({ createdAt: -1 }) // Sort by newest first
-      .skip((page - 1) * limit)
-      .limit(limit);
+      // .skip((page - 1) * limit)
+      // .limit(limit);
 
     // Format the response
     const formattedOrders = orders.map(order => ({
@@ -46,11 +46,11 @@ export async function GET(request) {
 
     return NextResponse.json({
       orders: formattedOrders,
-      pagination: {
-        total,
-        page,
-        pages: Math.ceil(total / limit),
-      }
+      // pagination: {
+      //   total,
+      //   page,
+      //   pages: Math.ceil(total / limit),
+      // }
     });
 
   } catch (error) {
