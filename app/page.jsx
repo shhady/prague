@@ -15,24 +15,22 @@ export default function Home() {
 
   useEffect(() => {
     setIsClient(true);
-    fetchPopularProducts();
+    fetchTopProducts();
     fetchCategories();
   }, []);
 
-  const fetchPopularProducts = async () => {
+  
+  const fetchTopProducts = async () => {
     try {
-      const response = await fetch('/api/products?sortBy=popular&limit=6');
-      if (!response.ok) throw new Error('Failed to fetch popular products');
+      const response = await fetch('/api/products/top');
       const data = await response.json();
-      setPopularProducts(data.products);
+      setPopularProducts(data);
     } catch (error) {
-      console.error('Error fetching popular products:', error);
-      setPopularProducts([]);
+      console.error('Error fetching top products:', error);
     } finally {
       setIsLoading(false);
     }
   };
-
   const fetchCategories = async () => {
     try {
       const response = await fetch('/api/categories');

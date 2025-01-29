@@ -45,7 +45,7 @@ export default function TopProducts() {
         <div key={product._id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
           <div className="relative w-16 h-16 rounded-lg overflow-hidden">
             <Image
-              src={product.image || '/images/no-image.jpg'}
+              src={product.images[0] || '/images/no-image.jpg'}
               alt={product.nameAr || product.name}
               fill
               className="object-cover"

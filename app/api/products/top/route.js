@@ -10,7 +10,7 @@ export async function GET() {
     const products = await Product.find()
       .sort({ sales: -1 })
       .limit(6)
-      .select('name nameAr images price sales salesHistory');
+      .select('name nameAr images price sales salesHistory stock');
 
     // Get the first day of current and last month
     const today = new Date();
@@ -45,9 +45,10 @@ export async function GET() {
         _id: product._id,
         name: product.name,
         nameAr: product.nameAr,
-        image: product.images[0],
+        images: product.images,
         price: product.price,
         sales: product.sales || 0,
+        stock:product.stock,
         currentMonthSales,
         lastMonthSales,
         salesTrend: Math.round(salesTrend)
