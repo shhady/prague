@@ -51,14 +51,7 @@ export default function ProductCard({ product, shade }) {
   };
 
   return (
-    <div className={`relative group ${
-      shade === 'light' ? 'bg-white' : 
-      shade === 'medium-light' ? 'bg-gray-100' : 
-      shade === 'medium' ? 'bg-gray-200' : 
-      shade === 'medium-dark' ? 'bg-gray-300' : 
-      shade === 'dark' ? 'bg-gray-400' : 
-      'bg-white'
-    } border rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300`} role="button" tabIndex={0}>
+    <div className={`relative group bg-white shadow-sm rounded-xl overflow-hidden  hover:shadow-lg transition-all duration-300`} role="button" tabIndex={0}>
       {/* Wishlist button */}
       {isLoaded && (
         <div className="absolute top-3 right-3 z-10">
@@ -85,7 +78,7 @@ export default function ProductCard({ product, shade }) {
       </div>
 
       {/* Product Image */}
-      <div className="relative aspect-square bg-gray-50 p-4">
+      <div className="relative aspect-square bg-white p-4 mt-6">
         <Image
           src={image}
           alt={nameAr || name}
@@ -97,12 +90,12 @@ export default function ProductCard({ product, shade }) {
       
       {/* Product Info */}
       <div className="p-4 space-y-2 flex justify-between items-center">
-        <h3 className="font-medium text-sm">
+        <h3 className="font-medium text-sm mt-2">
           {nameAr || name}
         </h3>
-        <p className="text-black font-bold text-lg">
+        <h3 className="text-black font-bold text-lg ">
           {price} ₪
-        </p>
+        </h3>
       </div>
     </div>
   );
