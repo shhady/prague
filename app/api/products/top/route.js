@@ -9,7 +9,7 @@ export async function GET() {
     // Get top 5 products by sales
     const products = await Product.find()
       .sort({ sales: -1 })
-      .limit(5)
+      .limit(6)
       .select('name nameAr images price sales salesHistory');
 
     // Get the first day of current and last month

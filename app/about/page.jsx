@@ -53,7 +53,7 @@ export default function About() {
             </div>
             <div className="relative h-[400px]">
               <Image
-                src="/images/about-story.jpg"
+                src="/about-us.webp"
                 alt="قصتنا"
                 fill
                 className="object-cover rounded-lg"

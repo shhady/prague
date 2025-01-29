@@ -73,7 +73,7 @@ export default function DashboardSidebar() {
       {/* Mobile Menu Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`lg:hidden fixed top-26 ${isOpen ? 'left-4' : 'right-4'} z-50 bg-gradient-ocean text-white p-2 rounded-md`}
+        className={`lg:hidden fixed top-26 ${isOpen ? 'left-4' : 'right-4'} z-45 bg-gradient-ocean text-white p-2 rounded-md`}
       >
         {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
       </button>

@@ -1,8 +1,9 @@
 'use client';
 import { FiX, FiUser } from 'react-icons/fi';
 import Link from 'next/link';
-
+import { useUser } from '@clerk/nextjs';
 export default function MenuOverlay({ isOpen, onClose }) {
+  const { user } = useUser();
   const menuItems = [
     { href: '/', label: 'الرئيسية' },
     { href: '/shop', label: 'المتجر' },
@@ -13,7 +14,7 @@ export default function MenuOverlay({ isOpen, onClose }) {
     { href: '/about', label: 'من نحن' },
     { href: '/contact', label: 'اتصل بنا' }
   ];
-
+  console.log(user)
   if (!isOpen) return null;
 
   return (
@@ -36,28 +37,28 @@ export default function MenuOverlay({ isOpen, onClose }) {
           <nav className="space-y-4 mt-8">
             <Link
               href="/"
-              className="block text-lg hover:text-primary"
+              className="block text-lg hover:bg-gray-300 px-3 py-3 rounded-lg"
               onClick={onClose}
             >
               الرئيسية
             </Link>
             <Link
               href="/shop"
-              className="block text-lg hover:text-primary"
+              className="block text-lg  hover:bg-gray-300 px-3 py-3 rounded-lg"
               onClick={onClose}
             >
               المتجر
             </Link>
             <Link
               href="/about"
-              className="block text-lg hover:text-primary"
+              className="block text-lg  hover:bg-gray-300 px-3 py-3 rounded-lg"
               onClick={onClose}
             >
               من نحن
             </Link>
             <Link 
               href="/contact" 
-              className="flex items-center gap-3 py-2 text-gray-700 hover:text-primary"
+              className="flex items-center gap-3 py-2 text-gray-700  hover:bg-gray-300 px-3 py-3 rounded-lg"
               onClick={onClose}
             >
               <span>اتصل بنا</span>
@@ -65,14 +66,19 @@ export default function MenuOverlay({ isOpen, onClose }) {
             <div className="mb-8 pt-8">
             <Link 
               href="/account" 
-              className="flex items-center gap-3 py-2 text-gray-700 hover:text-primary"
+              className="flex items-center gap-3 py-2 text-gray-700  hover:bg-gray-300 px-3 py-3 rounded-lg"
               onClick={onClose}
             >
               <FiUser className="w-6 h-6" />
               <span>حسابي</span>
             </Link>
-           
-          </div>
+            </div>
+            {user?.publicMetadata?.role == 'admin' && <Link href={'/dashboard'}
+                 className="flex items-center gap-3  text-gray-700  hover:bg-gray-300 px-3 py-3 rounded-lg mt-4"
+            >
+            لوحة التحكم
+           </Link>}
+         
           </nav>
         </div>
       </div>
