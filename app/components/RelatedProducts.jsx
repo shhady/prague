@@ -4,7 +4,6 @@ import ProductCard from './ProductCard';
 import Link from 'next/link';
 
 export default function RelatedProducts({ categoryId, currentProductId }) {
-  console.log('RelatedProducts props:', { categoryId, currentProductId });
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -55,11 +54,17 @@ export default function RelatedProducts({ categoryId, currentProductId }) {
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
         {products.map((product) => (
+           <Link 
+           key={product._id} 
+           href={`/shop/${product._id}`}
+           className="block cursor-pointer h-full"
+         >
           <ProductCard 
             key={product._id} 
             product={product}
             shade={products.indexOf(product) % 2 === 0 ? 'light' : 'medium'}
           />
+          </Link>
         ))}
       </div>
     </div>
