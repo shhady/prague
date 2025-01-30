@@ -51,8 +51,8 @@ export default function Header({ setIsCartOpen }) {
             {/* Center Logo */}
             <Link href="/" className="absolute left-1/2 transform -translate-x-1/2">
               <Image
-              width={200}
-              height={200} 
+              width={180}
+              height={180} 
                 src="/logo-prague.png" 
                 alt="Crystal Shop" 
                 className="h-16"

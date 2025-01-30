@@ -126,37 +126,41 @@ export default function ProductPage({ params }) {
         </div>
 
         {/* Product Info */}
-        <div>
-            <div className='flex justify-between items-center pl-4 py-2'>
+        <div className='flex flex-col justify-between items-start '>
+            <div className='flex justify-between items-start pl-4 py-2 w-full'>
+              <div>
             <h1 className="text-3xl font-bold mb-4">{product.nameAr}</h1>
+ {/* Category */}
+ {product.category && (
+            <div >
+              <p className="text-sm text-gray-600">
+                {product.category.nameAr}
+              </p>
+            </div>
+          )} 
+           <div className="prose max-w-none my-8">
+            <h3 className="text-lg font-semibold mb-2">الوصف</h3>
+            <p className="text-gray-600">{product.descriptionAr}</p>
+            {/* <p className="text-gray-500 mt-2">{product.description}</p> */}
+          </div>
+
+              </div>
           {/* <p className="text-gray-600 mb-4">{product.name}</p> */}
           <p className="text-2xl font-bold  mb-6">
             {product.price} شيكل
           </p>
             </div>
           
-           {/* Category */}
-           {product.category && (
-            <div className="mt-6">
-              <p className="text-sm text-gray-600">
-                {product.category.nameAr}
-              </p>
-            </div>
-          )} 
-          <div className="prose max-w-none my-8">
-            <h3 className="text-lg font-semibold mb-2">الوصف</h3>
-            <p className="text-gray-600">{product.descriptionAr}</p>
-            {/* <p className="text-gray-500 mt-2">{product.description}</p> */}
-          </div>
-
+          
+         
           {/* Stock Status */}
-          <div className="mb-6">
+          {user?.user?.publicMetadata?.role === 'admin' &&  <div className="mb-6">
             <p className={`text-sm ${product.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
               {product.stock > 0 ? `متوفر: ${product.stock} قطعة` : 'غير متوفر حالياً'}
             </p>
-          </div>
+          </div>}
 
-          <div className="flex gap-4">
+          <div className="flex w-full gap-4">
             <button
               onClick={() => {
                 addToCart(product);
