@@ -24,14 +24,23 @@ export default function ProductPage({ params }) {
   const user= useUser();
 
   useEffect(() => {
+    if (!id) return; 
     setIsClient(true);
     fetchProduct();
   }, [id]);
 
-  const fetchProduct = async () => {
+  const fetchProduct = async (retryCount = 3) => {
     try {
-      const response = await fetch(`/api/products/${id}`);
-      if (!response.ok) throw new Error('Failed to fetch product');
+      const response = await fetch(`/api/products/${id}`, { cache: 'no-store' });
+  
+      if (!response.ok) {
+        if (retryCount > 0) {
+          console.warn(`⚠️ Fetch failed, retrying... (${3 - retryCount + 1}/3)`);
+          return fetchProduct(retryCount - 1); // Retry fetching
+        }
+        throw new Error('Failed to fetch product');
+      }
+  
       const data = await response.json();
       setProduct(data);
     } catch (error) {
@@ -53,12 +62,15 @@ export default function ProductPage({ params }) {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8 text-center">
-        جاري التحميل...
+      <div className="container mx-auto px-4 py-8">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 bg-gray-200 rounded w-1/3 mx-auto" />
+          <div className="h-64 bg-gray-300 rounded-lg mx-auto" />
+          <div className="h-6 bg-gray-200 rounded w-1/2 mx-auto" />
+        </div>
       </div>
     );
   }
-
   if (error || !product) {
     return (
       <div className="container mx-auto px-4 py-8 text-center text-red-500">
