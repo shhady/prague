@@ -3,45 +3,29 @@ import dbConnect from '@/lib/dbConnect';
 import Product from '@/app/models/Product';
 import { isValidObjectId } from 'mongoose';
 
-export async function GET(request, { params }) {
+export async function GET(request, context) {
   try {
     await dbConnect();
-    const { id } = await params;
+    
+    const { id } = await context.params; // Await the params object
 
     if (!isValidObjectId(id)) {
-      return NextResponse.json(
-        { error: 'Invalid product ID' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
     }
     
-    const product = await Product.findById(id)
-      .populate('category', 'name nameAr');
-    
+    const product = await Product.findById(id).populate('category', 'name nameAr');
+
     if (!product) {
-      return NextResponse.json(
-        { error: 'Product not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    // Filter out any empty image strings
-    if (product.images) {
-      product.images = product.images.filter(img => img && img.trim() !== '');
-    }
-
-    // Ensure images is always an array
-    if (!product.images || !Array.isArray(product.images)) {
-      product.images = [];
-    }
+    // Ensure images is always an array and remove empty image strings
+    product.images = Array.isArray(product.images) ? product.images.filter(img => img?.trim()) : [];
 
     return NextResponse.json(product);
   } catch (error) {
     console.error('Error fetching product:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch product' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch product' }, { status: 500 });
   }
 }
 
