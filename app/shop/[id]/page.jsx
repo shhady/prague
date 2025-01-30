@@ -30,6 +30,7 @@ export default function ProductPage({ params }) {
   }, [id]);
 
   const fetchProduct = async (retryCount = 3) => {
+    console.log(id)
     try {
       const response = await fetch(`/api/products/${id}`, { cache: 'no-store' });
   
