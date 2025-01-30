@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-
+import Order from './Order';
 const visitorSchema = new mongoose.Schema({
   fullName: {
     type: String,

@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-
+import Order from './Order';
 const userSchema = new mongoose.Schema({
   clerkId: {
     type: String,
