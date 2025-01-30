@@ -1,8 +1,12 @@
-export default function Footer() {
+import { getCategories } from '@/actions/fetchCateogories';
+
+export default async function Footer() {
+  const categories = await getCategories(); // Fetch categories before rendering
+
   return (
     <footer className="bg-secondary-dark text-white bg-gradient-ocean">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {/* About Section */}
           <div>
             <h3 className="text-xl font-bold mb-4">متجر الكريستال</h3>
@@ -26,10 +30,13 @@ export default function Footer() {
           <div>
             <h3 className="text-xl font-bold mb-4">الفئات</h3>
             <ul className="space-y-2">
-              <li><a href="/shop?category=crystal" className="text-gray-600 hover:text-primary">الكريستال</a></li>
-              <li><a href="/shop?category=colored" className="text-gray-600 hover:text-primary">الكريستال الملون</a></li>
-              <li><a href="/shop?category=garnet" className="text-gray-600 hover:text-primary">حجر الجارنت</a></li>
-              <li><a href="/shop?category=glassluk" className="text-gray-600 hover:text-primary">جلاسلوك</a></li>
+              {categories.map((cat) => (
+                <li key={cat.id}>
+                  <a href={`/shop?category=${cat.id}`} className="text-gray-600 hover:text-primary">
+                    {cat.nameAr}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -56,4 +63,4 @@ export default function Footer() {
       </div>
     </footer>
   );
-} 
+}

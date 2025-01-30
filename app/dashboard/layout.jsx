@@ -1,15 +1,25 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useUser } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
 import DashboardSidebar from '@/app/components/DashboardSidebar';
 
 export default function DashboardLayout({ children }) {
   const [isClient, setIsClient] = useState(false);
+  const { user, isLoaded } = useUser();
+  const router = useRouter();
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  if (!isClient) {
+  useEffect(() => {
+    if (isLoaded && (!user || user?.publicMetadata?.role !== 'admin')) {
+      router.push('/');
+    }
+  }, [isLoaded, user, router]);
+
+  if (!isClient || !isLoaded || !user || user?.publicMetadata?.role !== 'admin') {
     return (
       <div className="min-h-screen bg-gray-100 flex justify-center items-center">
         <div className="text-center">

@@ -14,7 +14,7 @@ export default function MenuOverlay({ isOpen, onClose }) {
     { href: '/about', label: 'من نحن' },
     { href: '/contact', label: 'اتصل بنا' }
   ];
-  console.log(user)
+ 
   if (!isOpen) return null;
 
   return (

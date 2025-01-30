@@ -91,7 +91,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-
+      
       {/* Categories Section */}
       <section className="py-12 bg-brand-bg">
         <div className="container mx-auto px-4">
@@ -122,6 +122,7 @@ export default function Home() {
               ))
             ) : (
               <div className="space-y-4">
+                
                 {categories.map((category, index) => (
                   <div 
                     key={category._id} 

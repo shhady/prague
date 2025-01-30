@@ -10,7 +10,6 @@ export default function RelatedProducts({ categoryId, currentProductId }) {
 
   useEffect(() => {
     if (categoryId) {
-      console.log('Fetching related products for category:', categoryId);
       fetchRelatedProducts();
     }
   }, [categoryId, currentProductId]);
@@ -18,10 +17,8 @@ export default function RelatedProducts({ categoryId, currentProductId }) {
   const fetchRelatedProducts = async () => {
     try {
       const response = await fetch(`/api/products?category=${categoryId}&limit=4&exclude=${currentProductId}`);
-      console.log('API Response:', response.status);
       if (!response.ok) throw new Error('Failed to fetch related products');
       const data = await response.json();
-      console.log('Related products data:', data);
       setProducts(data.products || []);
     } catch (error) {
       console.error('Error fetching related products:', error);
@@ -40,7 +37,6 @@ export default function RelatedProducts({ categoryId, currentProductId }) {
     );
   }
 
-  console.log('Products state:', products);
   if (!products || products.length === 0) {
     console.log('No related products found');
     return null;

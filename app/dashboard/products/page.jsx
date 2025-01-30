@@ -46,7 +46,6 @@ export default function ProductsPage() {
       const response = await fetch('/api/categories');
       if (!response.ok) throw new Error('Failed to fetch categories');
       const categories = await response.json();
-      console.log('Categories response:', categories); // Debug log
       
       // API returns array directly, so we can use it as is
       setCategories(categories || []);

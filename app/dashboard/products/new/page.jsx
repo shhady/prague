@@ -168,7 +168,6 @@ export default function NewProductPage() {
         stock: parseInt(formData.stock),
       };
 
-      console.log('Submitting product data:', productData);
 
       const response = await fetch('/api/products', {
         method: 'POST',

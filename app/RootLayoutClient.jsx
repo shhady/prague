@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Header from './components/Header';
-import Footer from './components/Footer';
+// import Footer from './components/Footer';
 import { CartProvider } from './context/CartContext';
 import Cart from './components/Cart';
 import { WishlistProvider } from './context/WishlistContext';
@@ -16,7 +16,7 @@ export default function RootLayoutClient({ children }) {
         <main className="min-h-screen bg-secondary">
           {children}
         </main>
-        <Footer />
+        {/* <Footer /> */}
         <Cart isOpen={isCartOpen} setIsOpen={setIsCartOpen} />
       </WishlistProvider>
     </CartProvider>

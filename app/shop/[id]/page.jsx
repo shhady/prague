@@ -10,7 +10,7 @@ import RelatedProducts from '@/app/components/RelatedProducts';
 import ProductReviews from '@/app/components/ProductReviews';
 import { toast } from 'react-hot-toast';
 import Link from 'next/link';
-
+import { useUser } from '@clerk/nextjs';
 export default function ProductPage({ params }) {
   const { id } = use(params);
   const [isClient, setIsClient] = useState(false);
@@ -21,11 +21,11 @@ export default function ProductPage({ params }) {
   const { addToWishlist, isInWishlist, removeFromWishlist } = useWishlist();
   const [selectedImage, setSelectedImage] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
+  const user= useUser();
 
   useEffect(() => {
     setIsClient(true);
     fetchProduct();
-    checkAdmin();
   }, [id]);
 
   const fetchProduct = async () => {
@@ -42,17 +42,7 @@ export default function ProductPage({ params }) {
     }
   };
 
-  const checkAdmin = async () => {
-    try {
-      const response = await fetch('/api/users/check-admin');
-      if (response.ok) {
-        setIsAdmin(true);
-      }
-    } catch (error) {
-      console.error('Failed to check admin status');
-    }
-  };
-
+ 
   if (!isClient) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
@@ -191,7 +181,7 @@ export default function ProductPage({ params }) {
           </div>
 
           {/* Sales Statistics (only visible to admin) */}
-          {isAdmin && (
+          {user?.user?.publicMetadata?.role === 'admin' && (
             <div className="mt-8 bg-white p-6 rounded-lg shadow">
               <h3 className="text-xl font-semibold mb-4">إحصائيات المبيعات</h3>
               <div className="grid grid-cols-2 gap-4">
@@ -199,10 +189,10 @@ export default function ProductPage({ params }) {
                   <p className="text-sm text-gray-600">إجمالي المبيعات</p>
                   <p className="text-2xl font-bold">{product.sales}</p>
                 </div>
-                <div className="bg-green-50 p-4 rounded">
+                {/* <div className="bg-green-50 p-4 rounded">
                   <p className="text-sm text-gray-600">الإيرادات</p>
                   <p className="text-2xl font-bold">{product.sales * product.price} ₪</p>
-                </div>
+                </div> */}
               </div>
 
               {/* Sales History */}

@@ -7,7 +7,7 @@ import { OrderProvider } from './context/OrderContext';
 import { ClerkProvider } from '@clerk/nextjs';
 import { heIL } from '@clerk/localizations';
 import { UserProvider } from './context/UserContext';
-
+import Footer from './components/Footer'
 const cairo = Cairo({ subsets: ["arabic"] });
 
 export const metadata = {
@@ -29,6 +29,7 @@ export default function RootLayout({ children }) {
               </CartProvider>
             </OrderProvider>
             <Toaster position="top-center" />
+            <Footer />
           </body>
         </UserProvider>
       </ClerkProvider>
