@@ -34,7 +34,7 @@ export default function Header({ setIsCartOpen }) {
         <div className="container">
           <div className="flex justify-between items-center h-24">
             {/* Left Section */}
-            <div className="flex items-center gap-4 space-x-reverse">
+            <div className="flex items-center gap-2 md:gap-4 space-x-reverse">
               <CartButton setIsCartOpen={setIsCartOpen} />
               <WishlistButton />
               {user ? <UserButton /> : <>
