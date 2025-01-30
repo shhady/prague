@@ -59,7 +59,13 @@ export default forwardRef(function ProductFilters({
     setSortBy(value);
     onSortChange(value);
   };
-
+  const handleSearchInputChange = (e) => {
+    const value = e.target.value;
+    setSearchInput(value);
+    if (value.trim() === '') {
+      handleClearFilters();
+    }
+  };
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchInput.trim()) {
@@ -95,7 +101,7 @@ export default forwardRef(function ProductFilters({
           <input
             type="text"
             value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
+            onChange={handleSearchInputChange}
             placeholder="ابحث عن منتج..."
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary"
           />
