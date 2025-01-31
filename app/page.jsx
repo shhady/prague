@@ -65,7 +65,7 @@ export default function Home() {
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <Image
-            src="/hero-page.jpeg"
+            src="/hero2.webp"
             alt="Crystal Hero"
             fill
             priority
