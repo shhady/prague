@@ -198,7 +198,7 @@ export default function OrderDetailsPage() {
           <h2 className="text-xl font-semibold mb-4">حالة الطلب</h2>
           <div className="relative">
             <div className="absolute top-0 left-8 h-full w-0.5 bg-gray-200"></div>
-            <div className="space-y-8 relative">
+            <div className=" relative lg:flex lg:flex-row lg:justify-between lg:items-center flex flex-col gap-2 justify-start items-start">
               {getTimelineSteps().map((step, index) => {
                 // Check if this step should be active based on current order status
                 const currentStatusIndex = statusOrder.indexOf(order.status);
