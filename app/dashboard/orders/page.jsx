@@ -170,11 +170,18 @@ export default function OrdersPage() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(order.createdAt).toLocaleDateString('ar')}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center gap-2">
+                  <Link 
+                href={`/dashboard/orders/${order._id}`}
+                className="flex items-center justify-center px-3 py-1 bg-gradient-ocean text-white rounded-md hover:bg-blue-600 disabled:opacity-50 text-sm"
+                >
+                عرض الطلب
+              </Link>
                     <OrderStatusUpdate 
                       order={order} 
                       onStatusChange={handleOrderUpdate}
                     />
+                    
                   </td>
                 </tr>
               ))}

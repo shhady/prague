@@ -39,7 +39,7 @@ export default function OrderStatusUpdate({ order, onStatusChange }) {
           <button
             onClick={() => handleStatusChange('processing')}
             disabled={isUpdating}
-            className="flex items-center justify-center px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 text-sm"
+            className="flex gap-1 items-center justify-center px-3 py-1 bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200 disabled:opacity-50 text-sm"
           >
             <FiPackage className="mr-1" />
             بدء المعالجة
@@ -47,7 +47,7 @@ export default function OrderStatusUpdate({ order, onStatusChange }) {
           <button
             onClick={() => handleStatusChange('cancelled')}
             disabled={isUpdating}
-            className="flex items-center justify-center px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 text-sm"
+            className="flex gap-1 items-center justify-center px-3 py-1 bg-red-100 text-red-800 rounded-md hover:bg-red-200 disabled:opacity-50 text-sm"
           >
             <FiX className="mr-1" />
             إلغاء
@@ -58,7 +58,7 @@ export default function OrderStatusUpdate({ order, onStatusChange }) {
         <button
           onClick={() => handleStatusChange('completed')}
           disabled={isUpdating}
-          className="flex items-center justify-center px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50 text-sm"
+          className="flex gap-1 items-center justify-center px-3 py-1 bg-green-100 text-green-800 rounded-md hover:bg-green-200 disabled:opacity-50 text-sm"
         >
           <FiCheckCircle className="mr-1" />
           اكتمال
