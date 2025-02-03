@@ -5,6 +5,7 @@ import { toast } from 'react-hot-toast';
 import Image from 'next/image';
 import { useOrders } from '@/app/context/OrderContext';
 import Link from 'next/link';
+import OrderStatusUpdate from '@/app/components/OrderStatusUpdate';
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -21,29 +22,57 @@ const statusText = {
 };
 
 export default function OrdersPage() {
-  const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { orders, fetchOrders, updatePendingOrdersCount } = useOrders();
+  const { updatePendingOrdersCount } = useOrders();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  // Filter orders based on search term and status
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.customerInfo.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order._id.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const fetchOrders = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/orders');
+      if (!response.ok) throw new Error('Failed to fetch orders');
+      const data = await response.json();
+      setOrders(data.orders);
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('فشل في تحميل الطلبات');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadOrders = async () => {
-      setLoading(true);
-      await fetchOrders();
-      setLoading(false);
-    };
-    loadOrders();
-  }, [fetchOrders]);
+    fetchOrders();
+  }, []);
+
+  const handleOrderUpdate = (updatedOrder) => {
+    setOrders(currentOrders => 
+      currentOrders.map(order => 
+        order._id === updatedOrder._id ? updatedOrder : order
+      )
+    );
+    if (selectedOrder && selectedOrder._id === updatedOrder._id) {
+      setSelectedOrder(updatedOrder);
+    }
+    // Refresh pending orders count
+    updatePendingOrdersCount();
+  };
+
+  // Filter orders based on search term and status
+  const filteredOrders = orders.filter(order => {
+    const matchesSearch = 
+      order.customerInfo.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customerInfo.phone.includes(searchTerm) ||
+      order._id.includes(searchTerm);
+    
+    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
 
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
@@ -64,7 +93,7 @@ export default function OrdersPage() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return <div className="p-8 text-center">جاري التحميل...</div>;
   }
 
@@ -142,41 +171,10 @@ export default function OrdersPage() {
                     {new Date(order.createdAt).toLocaleDateString('ar')}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => {
-                          setSelectedOrder(order);
-                          setIsModalOpen(true);
-                        }}
-                        className="text-blue-600 hover:text-blue-900"
-                      >
-                        <FiEye className="w-5 h-5" />
-                      </button>
-                      {order.status === 'pending' && (
-                        <button
-                          onClick={() => updateOrderStatus(order._id, 'processing')}
-                          className="text-blue-600 hover:text-blue-900"
-                        >
-                          <FiCheck className="w-5 h-5" />
-                        </button>
-                      )}
-                      {order.status === 'processing' && (
-                        <button
-                          onClick={() => updateOrderStatus(order._id, 'completed')}
-                          className="text-green-600 hover:text-green-900"
-                        >
-                          <FiTruck className="w-5 h-5" />
-                        </button>
-                      )}
-                      {order.status === 'pending' && (
-                        <button
-                          onClick={() => updateOrderStatus(order._id, 'cancelled')}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          <FiX className="w-5 h-5" />
-                        </button>
-                      )}
-                    </div>
+                    <OrderStatusUpdate 
+                      order={order} 
+                      onStatusChange={handleOrderUpdate}
+                    />
                   </td>
                 </tr>
               ))}
@@ -208,33 +206,10 @@ export default function OrdersPage() {
 
               {/* Status Control Buttons */}
               <div className="mt-4 flex flex-wrap gap-2">
-                {order.status === 'pending' && (
-                  <>
-                    <button
-                      onClick={() => updateOrderStatus(order._id, 'processing')}
-                      className="flex-1 bg-blue-500 text-white px-3 py-1.5 rounded-md text-sm flex items-center justify-center gap-1"
-                    >
-                      <FiCheck className="w-4 h-4" />
-                      بدأ المعالجة
-                    </button>
-                    <button
-                      onClick={() => updateOrderStatus(order._id, 'cancelled')}
-                      className="flex-1 bg-red-500 text-white px-3 py-1.5 rounded-md text-sm flex items-center justify-center gap-1"
-                    >
-                      <FiX className="w-4 h-4" />
-                      إلغاء
-                    </button>
-                  </>
-                )}
-                {order.status === 'processing' && (
-                  <button
-                    onClick={() => updateOrderStatus(order._id, 'completed')}
-                    className="w-full bg-green-500 text-white px-3 py-1.5 rounded-md text-sm flex items-center justify-center gap-1"
-                  >
-                    <FiTruck className="w-4 h-4" />
-                    إتمام الطلب
-                  </button>
-                )}
+                <OrderStatusUpdate 
+                  order={order} 
+                  onStatusChange={handleOrderUpdate}
+                />
               </div>
 
               <Link 
@@ -329,39 +304,10 @@ export default function OrdersPage() {
 
               {/* Order Actions */}
               <div className="flex justify-end gap-2 mt-6">
-                {selectedOrder.status === 'pending' && (
-                  <>
-                    <button
-                      onClick={() => {
-                        updateOrderStatus(selectedOrder._id, 'processing');
-                        setIsModalOpen(false);
-                      }}
-                      className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                    >
-                       بدأ المعالجة
-                    </button>
-                    <button
-                      onClick={() => {
-                        updateOrderStatus(selectedOrder._id, 'cancelled');
-                        setIsModalOpen(false);
-                      }}
-                      className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                    >
-                      إلغاء الطلب
-                    </button>
-                  </>
-                )}
-                {selectedOrder.status === 'processing' && (
-                  <button
-                    onClick={() => {
-                      updateOrderStatus(selectedOrder._id, 'completed');
-                      setIsModalOpen(false);
-                    }}
-                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                  >
-                    إتمام الطلب
-                  </button>
-                )}
+                <OrderStatusUpdate 
+                  order={selectedOrder} 
+                  onStatusChange={handleOrderUpdate}
+                />
               </div>
             </div>
           </div>

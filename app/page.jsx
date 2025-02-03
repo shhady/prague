@@ -65,7 +65,7 @@ export default function Home() {
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <Image
-            src="/hero2.webp"
+            src="/hero-page.jpeg"
             alt="Crystal Hero"
             fill
             priority
@@ -74,22 +74,54 @@ export default function Home() {
         </div>
         {/* Content */}
         <div className="container mx-auto px-4 h-full flex items-center relative z-10">
-          <div className="max-w-2xl">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white">
-              اكتشف جمال الكريستال التشيكي
-            </h1>
-            <p className="text-xl mb-8 text-white">
-              مجموعة فريدة من الكريستال والأحجار الكريمة المستوردة مباشرة من براغ
-            </p>
-            <button
-              key="explore-collection"
-              className="bg-gradient-ocean text-white px-8 py-3 rounded-lg hover:opacity-90 hover:scale-105 transform transition-all duration-300 shadow-md hover:shadow-lg"
-              onClick={() => router.push('/shop')}
-            >
-              استكشف مجموعتنا
-            </button>
-          </div>
+    <div className="max-w-2xl lg:max-w-4xl text-right">
+      <div className="mb-4">
+        <span className="bg-white/20 text-white px-6 py-2 rounded-full text-sm">
+          رحلة إلى عالم البريق  
+        </span>
+      </div>
+      
+      <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 text-white leading-tight">
+        <span className="block mb-4 text-amber-200">أناقة لا تضاهى</span>
+        كريستال تشيكي أصيل<br/>
+        <span className="text-emerald-200">وأحجار كريمة</span> تسلب الألباب
+      </h1>
+
+      <p className="text-xl md:text-2xl mb-8 text-white/90 leading-relaxed">
+        قطع فنية تزاوج بين <span className="text-amber-300">إبداع الحرفيين التشيك</span><br/>
+        وروعة <span className="text-rose-300">حجارة الغارنيت النادرة</span><br/>
+        في تفاصيل تخطف الأنفاس
+      </p>
+
+      <div className="flex gap-4 justify-end">
+        <button
+          className="bg-gradient-ocean text-white px-8 py-4 rounded-xl hover:scale-105 transform transition-all duration-300 shadow-xl hover:shadow-2xl font-semibold text-lg flex items-center gap-2"
+          onClick={() => router.push('/shop')}
+        >
+          {/* <SparklesIcon className="w-5 h-5" /> */}
+          اكتشف التحف 
+        </button>
+        
+        {/* <button
+          className="border-2 border-white/30 text-white px-6 py-4 rounded-xl hover:bg-white/10 transition-all duration-300 font-medium"
+          onClick={() => router.push('/custom-orders')}
+        >
+          صمّم قطعتك الخاصة
+        </button> */}
+      </div>
+
+      <div className="mt-8 flex gap-6 justify-end items-center text-white/80">
+        <div className="flex items-center gap-2">
+          {/* <CheckCircleIcon className="w-5 h-5 text-emerald-400" /> */}
+          <span>شحن دولي آمن</span>
         </div>
+        <div className="flex items-center gap-2">
+          {/* <ShieldCheckIcon className="w-5 h-5 text-amber-400" /> */}
+          <span>شهادة ضمان الأصالة</span>
+        </div>
+      </div>
+    </div>
+  </div>
       </section>
       
       {/* Categories Section */}

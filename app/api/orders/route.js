@@ -5,6 +5,7 @@ import Product from '@/app/models/Product';
 import mongoose from 'mongoose';
 import User from '@/app/models/User';
 import Visitor from '@/app/models/Visitor';
+import { headers } from 'next/headers';
 
 // GET /api/orders - Get all orders with pagination and filtering
 export async function GET(request) {
@@ -171,6 +172,35 @@ export async function POST(request) {
       });
 
       await product.save({ session });
+    }
+
+    // Get headers once at the start
+    const headersList = await headers();
+    const origin = headersList.get('origin') || 'http://localhost:3000';
+
+    // Send confirmation emails
+    try {
+      // Send to customer
+      await fetch(`${origin}/api/send-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order: order[0], type: 'customer' })
+      });
+
+      // Send to admin
+      await fetch(`${origin}/api/send-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order: order[0], type: 'admin' })
+      });
+    } catch (emailError) {
+      console.error('Error sending emails:', emailError);
+      // Log more details about the error
+      console.error('Email Error Details:', {
+        message: emailError.message,
+        order: order[0]._id,
+        customerEmail: order[0].customerInfo.email
+      });
     }
 
     // Commit the transaction

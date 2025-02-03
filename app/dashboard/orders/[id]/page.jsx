@@ -15,6 +15,7 @@ import {
 } from 'react-icons/fi';
 import Image from 'next/image';
 import { toast } from 'react-hot-toast';
+import OrderStatusUpdate from '@/app/components/OrderStatusUpdate';
 
 export default function OrderDetailsPage() {
   const { id } = useParams();
@@ -40,23 +41,28 @@ export default function OrderDetailsPage() {
     }
   };
 
-  const updateOrderStatus = async (newStatus) => {
+  const handleStatusChange = async (newStatus) => {
     setIsUpdating(true);
     try {
-      const response = await fetch(`/api/orders/${id}`, {
+      const response = await fetch(`/api/orders/${id}/status`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus }),
       });
-      
-      if (!response.ok) throw new Error('Failed to update order status');
-      
+
+      if (!response.ok) {
+        throw new Error('Failed to update status');
+      }
+
+      // Get the updated order data
       const updatedOrder = await response.json();
-      setOrder(updatedOrder.order);
+      setOrder(updatedOrder); // Update local state with new order data
       toast.success('تم تحديث حالة الطلب بنجاح');
     } catch (error) {
-      console.error('Error:', error);
-      toast.error('حدث خطأ أثناء تحديث حالة الطلب');
+      console.error('Error updating order status:', error);
+      toast.error('فشل في تحديث حالة الطلب');
     } finally {
       setIsUpdating(false);
     }
@@ -277,37 +283,13 @@ export default function OrderDetailsPage() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-4">
-          {order.status === 'pending' && (
-            <>
-              <button
-                onClick={() => updateOrderStatus('processing')}
-                disabled={isUpdating}
-                className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
-              >
-                <FiPackage className="mr-2" />
-                بدء المعالجة
-              </button>
-              <button
-                onClick={() => updateOrderStatus('cancelled')}
-                disabled={isUpdating}
-                className="flex items-center justify-center px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50"
-              >
-                <FiX className="mr-2" />
-                إلغاء الطلب
-              </button>
-            </>
-          )}
-          {order.status === 'processing' && (
-            <button
-              onClick={() => updateOrderStatus('completed')}
-              disabled={isUpdating}
-              className="flex items-center justify-center px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50"
-            >
-              <FiCheckCircle className="mr-2" />
-              اكتمال الطلب
-            </button>
-          )}
+        <div className="mt-4">
+          <OrderStatusUpdate 
+            order={order} 
+            onStatusChange={(updatedOrder) => {
+              setOrder(updatedOrder);
+            }} 
+          />
         </div>
       </div>
     </div>

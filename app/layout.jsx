@@ -5,7 +5,7 @@ import { CartProvider } from './context/CartContext';
 import { Toaster } from 'react-hot-toast';
 import { OrderProvider } from './context/OrderContext';
 import { ClerkProvider } from '@clerk/nextjs';
-import { heIL } from '@clerk/localizations';
+import { arSA } from '@clerk/localizations';
 import { UserProvider } from './context/UserContext';
 import Footer from './components/Footer'
 const cairo = Cairo({ subsets: ["arabic"] });
@@ -18,7 +18,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="ar" dir="rtl">
-      <ClerkProvider localization={heIL}>
+      <ClerkProvider localization={arSA}>
         <UserProvider>
           <body className={cairo.className}>
             <OrderProvider>
